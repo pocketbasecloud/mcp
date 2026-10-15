@@ -33,11 +33,15 @@ With the PocketBase Cloud MCP Server, your assistant can:
   deploys, and the logs of instances and backends.
 * **Find out why something broke:** read a failed deploy's build log and explain the fix.
 * **Start an app:** create projects and PocketBase instances in the region you choose.
-* **Work with data:** design collections and API rules, and read, create, update and delete records.
-* **Harden an instance:** review API rules for security gaps, find slow requests, and back up before risky
-  changes.
 * **Ship:** add and verify custom domains, deploy hooks and static sites, and get the exact `pbc` command to deploy
   your source code.
+* **Work with data** *(rolling out)*: design collections and API rules, and read, create, update and delete
+  records.
+* **Harden an instance** *(rolling out)*: review API rules for security gaps, find slow requests, and back up
+  before risky changes.
+
+The last two use the [database tools](#tools), which appear once your instances can be reached through PocketBase
+Cloud.
 
 > [!IMPORTANT]
 > **You choose the access when you connect:** read and write or read only, and all projects or a single one.
@@ -266,10 +270,14 @@ This forwards your token to PocketBase Cloud as is (token passthrough); interact
 * "What's running in my PocketBase Cloud account right now?"
 * "Why did the last deploy of my frontend fail?"
 * "Create a new PocketBase instance called `shop-db` in my Demo shop project."
+* "Add the domain `api.example.com` to my backend and tell me which DNS record to create."
+* "Give me the command to deploy this folder as a new backend."
+
+Once the database tools are available:
+
 * "Check the API rules of `shop-db` for security problems."
 * "In `shop-db`, how many orders are paid, pending and refunded? Then show me the five newest."
 * "Set up user accounts in `shop-db` so each user only sees their own orders."
-* "Give me the command to deploy this folder as a new backend."
 
 ## Skills
 
@@ -278,9 +286,9 @@ This forwards your token to PocketBase Cloud as is (token passthrough); interact
 | Skill | Use it for |
 | --- | --- |
 | [`getting-started`](skills/getting-started/SKILL.md) | A first project and PocketBase instance. |
-| [`review-security`](skills/review-security/SKILL.md) | API rules that are too open, fixed with your approval. |
 | [`debug-deploy`](skills/debug-deploy/SKILL.md) | Why a deploy failed, and the command to deploy again. |
-| [`setup-user-accounts`](skills/setup-user-accounts/SKILL.md) | Users, per-user collections and safe rules. |
+
+Skills for security reviews and user accounts follow once the database tools are available.
 
 With a plain MCP setup (no plugin), copy a skill's folder into your client's skills directory, or ask your
 assistant to read the `SKILL.md`.
