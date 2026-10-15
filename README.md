@@ -5,7 +5,7 @@
 <h1 align="center">PocketBase Cloud MCP Server</h1>
 
 <p align="center">
-  <b>The official Model Context Protocol (MCP) server for PocketBase Cloud: a hosted bridge that lets your AI assistant work in your PocketBase Cloud account — projects, PocketBase instances, frontends and backends, deploys, custom domains, and the collections and records inside each instance.</b>
+  <b>The official Model Context Protocol (MCP) server for PocketBase Cloud: a hosted bridge that lets your AI assistant work in your PocketBase Cloud account — projects, PocketBase instances, frontends and backends, deploys and logs, and custom domains.</b>
 </p>
 
 <p align="center">
