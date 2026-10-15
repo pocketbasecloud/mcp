@@ -8,6 +8,7 @@ for deciding what to build, and in what order.
 | [research.md](research.md) | How other platforms package skills, prompts and workflows on top of their MCP servers, and the patterns worth borrowing. |
 | [use-cases.md](use-cases.md) | Who uses PocketBase Cloud through an assistant, every use case by stage of an app's life, the flows behind the important ones, and the tools each needs. Mermaid diagrams. |
 | [roadmap.md](roadmap.md) | The proposed skills with priorities, step-by-step specs for the P0 ones, packaging and CI changes, and the tools the server is missing. |
+| [implementation.md](implementation.md) | The tasks in order with the files each touches, a skill template, the `evals.json` format and runner, and the definition of done. |
 
 ## In one screen
 
