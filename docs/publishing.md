@@ -13,6 +13,32 @@ Every manifest carries a `version`: `server.json`, `plugin.json`, `.claude-plugi
 The entry is [`server.json`](../server.json), named `com.pocketbasecloud/mcp`. A name under `com.pocketbasecloud`
 must be proven with the `pocketbasecloud.com` domain, once per login, by DNS or by HTTP.
 
+The Registry holds only this metadata (name, description, server URL, links, version), not the server's tools, so a
+deploy of the server needs no new entry. Publish again when the metadata changes, with a new version: a published
+version can't be changed.
+
+### Release (automatic)
+
+Bump the version in every manifest, commit and push, then push a tag with the same version:
+
+```sh
+git tag v1.1.0 && git push origin v1.1.0
+```
+
+[`publish.yml`](../.github/workflows/publish.yml) checks the manifests, refuses a tag that differs from
+`server.json`'s version, installs a pinned `mcp-publisher` after checking its checksum, signs in by DNS with the
+`MCP_PRIVATE_KEY` secret, and publishes.
+
+The secret holds the key's private part in hex, the same string step 3 below computes. Set it from the key without
+printing it:
+
+```sh
+openssl pkey -in key.pem -noout -text | grep -A3 "priv:" | tail -n +2 | tr -d ' :\n' \
+  | gh secret set MCP_PRIVATE_KEY -R pocketbasecloud/mcp
+```
+
+### Set up, or publish by hand
+
 1. **Create a key** (OpenSSL 3; on macOS use Homebrew's `openssl`, since the system LibreSSL lacks Ed25519):
 
    ```sh
