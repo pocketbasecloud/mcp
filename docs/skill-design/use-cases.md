@@ -23,6 +23,7 @@ Legend used in every diagram:
 ## 1. Use-case map
 
 Every use case grouped by the stage of an app's life. A skill name under a use case is the skill that carries it.
+The `pocketbase` router skill (P0) isn't a use case of its own: it routes to these and holds the rules they share.
 
 ```mermaid
 flowchart LR
@@ -68,6 +69,7 @@ flowchart LR
       o1(["Why the app<br/>returns errors<br/><b>investigate-errors</b> 🟧 P0"])
       o2(["Slow requests, indexes<br/><b>tune-performance</b> ⬜ P1"])
       o3(["Questions about the data<br/><b>explore-data</b> ⬜ P1"])
+      o4(["Understand an instance<br/>someone else built<br/><b>explain-instance</b> ⬜ P1"])
     end
 
     subgraph protect["7 · Protect"]
@@ -89,7 +91,7 @@ flowchart LR
   classDef later fill:#eceff1,stroke:#90a4ae,color:#111
   class s1,x1,x2,d2 shipped
   class m1,m2,d5,o1,r1 p0
-  class s2,m3,x3,x4,b1,b2,b3,b4,d1,d3,d4,o2,o3 later
+  class s2,m3,x3,x4,b1,b2,b3,b4,d1,d3,d4,o2,o3,o4 later
 ```
 
 **Coverage today:** the four shipped skills cover *Start*, *Secure* and one *Ship* case. *Model the data* past user
@@ -149,11 +151,14 @@ The shipped skills already do this; the proposed ones must too. It is also what 
 
 ```mermaid
 flowchart TD
-  ask["User asks for a change"] --> read["Read the current state<br/>list_* / get_* / check_*"]
+  ask["User asks for a change"] --> target["Step 0: resolve the project and instance,<br/>announce the target in one line"]
+  target --> ro{"User said<br/>read only?"}
+  ro -->|yes| hand
+  ro -->|no| read["Read the current state<br/>list_* / get_* / check_*"]
   read --> tool{"Is the write tool<br/>on this connection?"}
   tool -->|"no: read_only, project_ref<br/>or features leave it out"| hand["Hand the user the artifact instead:<br/>collection JSON, rule, pbc command,<br/>migration file — and say how to reconnect"]
   tool -->|yes| plan["Propose the exact change<br/>preview_collections when it is schema"]
-  plan --> ok{"User approves<br/>that exact change?"}
+  plan --> ok{"User approves that exact<br/>change on that target?"}
   ok -->|no| plan
   ok -->|yes| risky{"Can it lose data<br/>or lock users out?"}
   risky -->|yes| backup["create_backup<br/>and tell the backup's name"]
@@ -268,7 +273,7 @@ flowchart TD
   lc --> sec["check_security<br/>no critical, warnings explained"]
   lc --> perf["check_performance<br/>no slow route without an index"]
   lc --> bk["list_backups + continuous backup<br/>a backup exists and restores"]
-  lc --> dev["get_resource<br/>dev mode off"]
+  lc --> dev["dev mode off<br/>ask, or update_pocketbase_config"]
   lc --> dom["check_domain<br/>custom domain answers"]
   lc --> diag["diagnose_resource<br/>healthy, no recent failed deploy"]
   lc --> env["list_env_vars<br/>every name the app reads is set"]
@@ -286,6 +291,7 @@ to do when they are missing.
 
 | Use case | Skill | account | resources | deploy | domains | database | docs | env | database_admin |
 |---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| Route and shared rules | pocketbase (router) 🟧 | ○ | ○ | | | | ● | | |
 | First project and instance | getting-started ✅ | ● | ● | ○ | | | ○ | | |
 | Fix a failed deploy | debug-deploy ✅ | ○ | | ● | | | | | |
 | Users and owned data | setup-user-accounts ✅ | | | | | ● | ○ | | |
@@ -297,6 +303,7 @@ to do when they are missing.
 | Go-live review | launch-checklist 🟧 | ● | ● | ● | ● | ● | | ○ | |
 | Slow requests | tune-performance ⬜ | | ○ | | | ● | ○ | | |
 | Questions about data | explore-data ⬜ | | ○ | | | ● | | | |
+| Understand an instance | explain-instance ⬜ | | ○ | ● | | ● | | | |
 | Seed or import | import-data ⬜ | | | | | ● | | | ○ |
 | Connect the app | connect-app ⬜ | | ● | | | ● | ● | ○ | |
 | Hooks | write-hooks ⬜ | | | ● | | ○ | ● | | |
