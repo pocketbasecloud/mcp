@@ -1,11 +1,9 @@
 {
   "name": "pocketbase-cloud",
-  "displayName": "PocketBase Cloud",
   "description": "PocketBase Cloud plugin for Cursor: MCP and skills for projects, PocketBase instances, deploys, security reviews and collections.",
   "version": "1.0.0",
   "author": {
-    "name": "PocketBase Cloud",
-    "url": "https://pocketbasecloud.com"
+    "name": "PocketBase Cloud"
   },
   "homepage": "https://mcp.pocketbasecloud.com/",
   "repository": "https://github.com/pocketbasecloud/mcp",

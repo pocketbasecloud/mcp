@@ -36,11 +36,12 @@ Describe, in a short list:
 |---|---|
 | `listRule`, `viewRule` | `owner = @request.auth.id` |
 | `createRule` | `@request.auth.id != "" && @request.body.owner = @request.auth.id` |
-| `updateRule` | `owner = @request.auth.id && (@request.body.owner:isset = false \|\| @request.body.owner = @request.auth.id)` |
+| `updateRule` | `owner = @request.auth.id && @request.body.owner:changed = false` |
 | `deleteRule` | `owner = @request.auth.id` |
 
-Adjust for data that is meant to be shared (for example published posts anyone may read). When unsure about a
-field type or rule, call `search_docs`.
+`:changed = false` keeps a user from handing a record to someone else. Adjust for data that is meant to be shared
+(for example published posts anyone may read). When unsure about a field type or rule, call `search_docs`; the
+reference is https://pocketbase.io/docs/api-rules-and-filters/.
 
 ### Step 3: Preview and ask
 
@@ -76,4 +77,5 @@ file in their app, for the PocketBase JS SDK.
 - Never apply collections or rules without the user's approval of the previewed change.
 - Always back up before `apply_collections`, and tell the user the backup's name.
 - If `apply_collections` is not available, the connection is read-only or has no database tools: give the user
-  the collection JSON to import in the admin UI (**Settings → Import collections**) instead.
+  the collection JSON instead, to save as a file and import with `pbc admin collections import <file>` or the
+  admin UI's collections import.

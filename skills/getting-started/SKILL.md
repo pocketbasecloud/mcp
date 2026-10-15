@@ -54,9 +54,9 @@ portal, as the tool's reply says.
 ### Step 5: Wait until it runs
 
 Call `get_resource` with `kind: "pocketbase"` and the instance name until its status is `running`. If it fails,
-read the plain-language reason it returns and call `diagnose_resource` for the details.
+read `statusReason`, the plain-language reason it returns, and call `diagnose_resource` for the details.
 
-Give the user the instance URL and the admin UI at `<instance URL>/_/`.
+Give the user the instance's address from `domain` (`https://<domain>`) and its admin UI at `https://<domain>/_/`.
 
 ### Step 6: Suggest the next step
 

@@ -104,15 +104,20 @@ Then start the authentication flow so I can sign in to PocketBase Cloud.
 
 **Claude (claude.ai and Claude Desktop)**
 
-1. **Customize → Connectors → Add custom connector.**
-2. Paste the server URL. If asked how Claude identifies itself, choose **Register automatically**. Click **Add**.
+1. **Customize → Connectors**, then **+ Add → Add custom connector**.
+2. Name it (for example *PocketBase Cloud*), paste the server URL, and continue. If asked how Claude identifies
+   itself, choose **Register automatically**. Click **Add**.
 3. Click **Connect**, sign in to PocketBase Cloud, then choose the access and the project.
+
+On a Team or Enterprise plan, an owner adds it once under **Organization settings → Connectors → Add → Custom →
+Web**; then each member clicks **Connect**.
 
 **ChatGPT**
 
 1. **Plugins → + → Add custom MCP server.**
-2. Enter the server URL under **Connection** with **OAuth** authentication, then **Create as a plugin**.
-3. Sign in when ChatGPT asks, then type `@` in a chat to use it.
+2. Name it, enter the server URL under **Connection** with **OAuth** authentication, accept the warning about
+   custom servers, then **Create as a plugin**.
+3. Install the plugin, sign in to PocketBase Cloud when ChatGPT asks, then type `@` in a chat to use it.
 
 ### Other clients
 
@@ -120,10 +125,10 @@ Then start the authentication flow so I can sign in to PocketBase Cloud.
 | --- | --- |
 | Claude Code | `claude mcp add --transport http pocketbasecloud https://mcp.pocketbasecloud.com/mcp`, then run `/mcp` in a session to sign in |
 | Claude Code (plugin, with skills) | `/plugin marketplace add pocketbasecloud/mcp`, then `/plugin install pocketbase-cloud@pocketbase-cloud` |
-| Codex | `codex mcp add pocketbasecloud --url https://mcp.pocketbasecloud.com/mcp` |
-| Cursor | The **Add to Cursor** button above, or [`.mcp.json`](.mcp.json) in `.cursor/mcp.json` |
+| Codex | `codex mcp add pocketbasecloud --url https://mcp.pocketbasecloud.com/mcp`, then `codex mcp login pocketbasecloud` |
+| Cursor | The **Add to Cursor** button above, or `"pocketbasecloud": { "url": "https://mcp.pocketbasecloud.com/mcp" }` under `mcpServers` in `.cursor/mcp.json` |
 | VS Code / GitHub Copilot | The **Add to VS Code** button above, or `"pocketbasecloud": { "type": "http", "url": "https://mcp.pocketbasecloud.com/mcp" }` under `servers` in `.vscode/mcp.json` |
-| Windsurf | **Cascade → MCP servers → Add custom server**, with `serverUrl` set to `https://mcp.pocketbasecloud.com/mcp` |
+| Devin Desktop (formerly Windsurf) | In the Cascade panel, **… → Open MCP config file**, and add `"pocketbasecloud": { "url": "https://mcp.pocketbasecloud.com/mcp" }` under `mcpServers`. For the Devin agent: `devin mcp add pocketbasecloud https://mcp.pocketbasecloud.com/mcp`, then `devin mcp login pocketbasecloud` |
 | Gemini CLI | `gemini extensions install https://github.com/pocketbasecloud/mcp`, then `/mcp auth pocketbasecloud` |
 | Any other MCP client | The server URL, with the Streamable HTTP transport and OAuth |
 
@@ -290,6 +295,7 @@ assistant to read the `SKILL.md`.
 | Only one project is visible | The connection is limited to one project. Reconnect and choose all projects, or drop `project_ref`. |
 | Database tools are missing | They are rolling out, and also need the `database` group in `features`. |
 | Asked to sign in again | A connection unused for 30 days ends; sign in again. |
+| Cursor sign-in fails with "Invalid redirect URI" | Update Cursor. Current versions sign in through `http://localhost`; older ones used a `cursor://` callback, which the server doesn't accept. |
 | Claude asks how it identifies itself | Choose **Register automatically**. |
 
 ## Security
