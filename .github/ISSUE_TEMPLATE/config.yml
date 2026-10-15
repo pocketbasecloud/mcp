@@ -1,0 +1,12 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🛠️ Account, billing or platform question?
+    url: https://pocketbasecloud.com
+    about: >-
+      This repository covers the MCP server's documentation, manifests and skills. For your PocketBase Cloud
+      account, plan, billing or a resource that misbehaves, PocketBase Cloud support is the faster route.
+  - name: 🔌 How to connect
+    url: https://mcp.pocketbasecloud.com/
+    about: Step-by-step setup for Claude, ChatGPT, Cursor, VS Code and Claude Code.
+# GitHub adds a "Report a security vulnerability" entry to this chooser because the repo has a SECURITY.md and
+# private vulnerability reporting; there is no second one here to avoid a duplicate.

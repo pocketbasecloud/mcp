@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "pocketbasecloud": {
+      "type": "http",
+      "url": "https://mcp.pocketbasecloud.com/mcp"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+name: 💡 Feature request
+description: A tool, a skill, a client or a workflow you'd like to see.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: What do you want to get done?
+      description: Describe the task in your own words, as you would ask your assistant.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: What happens today?
+      description: What the assistant does now, or what you do by hand instead.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What would help most?
+      options:
+        - A new tool or a change to a tool
+        - A new skill
+        - Support for another client
+        - Better documentation
+        - Not sure

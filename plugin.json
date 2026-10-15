@@ -1,0 +1,14 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "pocketbase-cloud",
+  "version": "1.0.0",
+  "description": "Connect AI agents to PocketBase Cloud: projects, PocketBase instances, deploys, domains, and the collections and records inside each instance, with skills for common workflows.",
+  "author": {
+    "name": "PocketBase Cloud",
+    "url": "https://pocketbasecloud.com"
+  },
+  "homepage": "https://mcp.pocketbasecloud.com/",
+  "repository": "https://github.com/pocketbasecloud/mcp",
+  "license": "Apache-2.0",
+  "keywords": ["pocketbase", "pocketbase-cloud", "mcp", "backend", "database", "hosting", "deploy"]
+}

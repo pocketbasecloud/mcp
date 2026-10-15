@@ -1,0 +1,12 @@
+{
+  "name": "pocketbasecloud-mcp-package",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test scripts/*.test.mjs",
+    "validate": "node scripts/validate.mjs"
+  }
+}

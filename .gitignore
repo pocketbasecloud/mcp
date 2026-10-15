@@ -1,0 +1,13 @@
+# MCP Registry signing key: kept by maintainers, never committed. See docs/publishing.md.
+key.pem
+*.pem
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+
+# Logs
+*.log
+
+node_modules/

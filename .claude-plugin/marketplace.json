@@ -1,0 +1,24 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "pocketbase-cloud",
+  "description": "PocketBase Cloud plugin marketplace for Claude Code",
+  "owner": {
+    "name": "PocketBase Cloud",
+    "url": "https://pocketbasecloud.com"
+  },
+  "plugins": [
+    {
+      "name": "pocketbase-cloud",
+      "displayName": "PocketBase Cloud",
+      "description": "Work in your PocketBase Cloud account from Claude Code: projects, PocketBase instances, deploys and logs, custom domains, and the collections, API rules and records inside each instance.",
+      "version": "1.0.0",
+      "author": {
+        "name": "PocketBase Cloud",
+        "url": "https://pocketbasecloud.com"
+      },
+      "source": "./",
+      "category": "development",
+      "homepage": "https://github.com/pocketbasecloud/mcp"
+    }
+  ]
+}

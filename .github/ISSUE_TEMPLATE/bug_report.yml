@@ -1,0 +1,54 @@
+name: 🐞 Bug report
+description: Something in the MCP server, a client manifest or a skill doesn't work as described.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. **Don't paste tokens, passwords or private data.** For a
+        security problem, follow SECURITY.md instead.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where is the problem?
+      options:
+        - Connecting or signing in
+        - A tool's result or error
+        - A skill
+        - A client manifest or plugin (Claude Code, Cursor, Gemini CLI, Agent Plugins)
+        - The documentation
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: Client and version
+      placeholder: e.g. Claude Desktop 1.4, Cursor 2.1, Claude Code 2.0
+    validations:
+      required: true
+  - type: input
+    id: tool
+    attributes:
+      label: Tool or skill involved, if any
+      placeholder: e.g. list_deployments, debug-deploy
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: The prompt you used, what the assistant did, and the error message if there was one.
+    validations:
+      required: true
+  - type: input
+    id: when
+    attributes:
+      label: When did it happen? (date, time and time zone)
+      description: It helps us find the call in our logs.
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Connect with read and write access to all projects
+        2. Ask "..."
+        3. ...
