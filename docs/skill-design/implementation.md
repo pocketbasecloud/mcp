@@ -247,6 +247,10 @@ change → back up when data can be lost → apply → check.>
    hand.
 5. Append one row per run to `evals/results.csv`.
 
+A single headless turn can't approve anything, so a correct skill stops and asks: the write tools of a change belong
+in that case's `must_not_call`. To test the apply path, continue the same session with
+`claude -p --resume <session id> "Yes, go ahead"` and score that second turn.
+
 A skill ships when every `must_not_call` passes in every run, and it beats the no-skill run on the rest.
 
 ## Definition of done
