@@ -8,10 +8,12 @@ own description says. Every packaged plugin in this repository installs them, an
 |---|---|
 | [`getting-started`](getting-started/SKILL.md) | A first project and PocketBase instance: plan, project, region, instance. |
 | [`debug-deploy`](debug-deploy/SKILL.md) | Why a deploy failed or an app does not start, and the command to deploy again. |
+| [`review-security`](review-security/SKILL.md) | Finding API rules that are too open, and fixing them with the user. |
+| [`setup-user-accounts`](setup-user-accounts/SKILL.md) | Users, per-user collections and safe rules: preview, back up, apply, check. |
 
-They follow the prompts the server itself offers (`getting_started`, `debug_deploy`), with more detail on each
-step. Skills for security reviews and user accounts follow once the server's database tools are available.
+They follow the prompts the server itself offers (`getting_started`, `debug_deploy`, `review_security`,
+`setup_auth`), with more detail on each step.
 
-Both target `https://mcp.pocketbasecloud.com/mcp` and use only its tools. Every step that changes something waits
-for the user's approval. When a tool a skill needs is missing, the connection is read-only or limited by its
+All of them target `https://mcp.pocketbasecloud.com/mcp` and use only its tools. Every step that changes something
+waits for the user's approval. When a tool a skill needs is missing, the connection is read-only or limited by its
 options, and the skill says what to do instead.
