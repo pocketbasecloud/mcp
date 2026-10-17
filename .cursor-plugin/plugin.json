@@ -1,7 +1,7 @@
 {
   "name": "pocketbase-cloud",
   "description": "PocketBase Cloud plugin for Cursor: MCP and skills for projects, PocketBase instances, deploys, security reviews and collections.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": {
     "name": "PocketBase Cloud"
   },

@@ -227,7 +227,9 @@ For example: `https://mcp.pocketbasecloud.com/mcp?read_only=true&project_ref=<pr
   you asked.
 * **Guardrails on changes.** Tools that delete or restore need explicit confirmation (`confirm: true`); deleting a
   collection also needs its name typed again; bulk deletes and restores back the instance up first and return the
-  backup name to undo with; changing the type of an existing field is refused.
+  backup's name. Restoring it brings records back, but not a deleted collection or field: instances replay that
+  change when they restart, so restore the backup into a new instance instead. Changing the type of an existing field
+  is refused.
 * **Instance credentials are never held.** Database tools reach an instance through PocketBase Cloud, and only the
   calls those tools make are allowed: no instance settings, no backup downloads, no writes to system collections
   such as `_superusers`.
