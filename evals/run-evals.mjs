@@ -69,8 +69,41 @@ async function snapshot(names) {
   }
   return out;
 }
+async function recordIds(collection) {
+  const ids = [];
+  for (let page = 1; ; page++) {
+    const r = await admin.call("list_records", { resource: R, collection, fields: "id", limit: 50, page });
+    ids.push(...r.items.map((i) => i.id));
+    if (!r.totalPages || page >= r.totalPages || page >= 40) return ids;
+  }
+}
 const baseNames = (await userCollections()).filter((n) => !isEval(n));
 const baseline = await snapshot(baseNames);
+const baseRecords = Object.fromEntries(await Promise.all(baseNames.map(async (n) => [n, new Set(await recordIds(n))])));
+
+/**
+ * Puts the instance's own collections back as they were at the start: a run without the skill may change a rule or
+ * add a field or a record anywhere. Fields it added are removed, the stored definition is applied again (get_collection
+ * nests the rules; apply_collections takes them at the top), and records it added are deleted.
+ */
+async function restoreBaseline() {
+  for (const n of baseNames) {
+    const was = baseline[n].definition;
+    const now = await admin.call("get_collection", { resource: R, collection: n });
+    if (JSON.stringify(now) !== JSON.stringify(was)) {
+      const kept = new Set(was.fields.map((f) => f.name));
+      const added = now.fields.filter((f) => !kept.has(f.name) && !f.system).map((f) => f.name);
+      if (added.length) await admin.call("remove_fields", { resource: R, collection: n, fields: added, backupFirst: false, confirm: true });
+      const { rules, ...rest } = was;
+      await admin.call("apply_collections", { resource: R, collections: [{ ...rest, ...rules }] });
+      const again = await admin.call("get_collection", { resource: R, collection: n });
+      console.log(JSON.stringify(again) === JSON.stringify(was) ? `  put ${n} back as it was` : `  ✗ ${n} could not be put back exactly`);
+    }
+    for (const id of await recordIds(n)) {
+      if (!baseRecords[n].has(id)) await admin.call("delete_record", { resource: R, collection: n, id, confirm: true });
+    }
+  }
+}
 const baseBackups = new Set((await admin.call("list_backups", { resource: R })).backups.map((b) => b.key));
 const baseHooks = new Set((await admin.call("list_hooks", { resource: R })).hooks.map((h) => h.filename));
 const fixture = JSON.parse(readFileSync(join(ROOT, "evals/fixture.json"), "utf8"));
@@ -110,6 +143,7 @@ async function send(request, fill) {
 }
 
 async function reset(parts = []) {
+  await restoreBaseline();
   // A collection another one relates to is refused until that one is gone, so a few passes clear any order.
   for (let pass = 0; pass < 6; pass++) {
     const extra = (await userCollections()).filter((n) => !baseNames.includes(n));
