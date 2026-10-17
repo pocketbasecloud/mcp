@@ -43,7 +43,7 @@ const RUNS = Number(opt.runs);
 const BRANCHES = opt.branches.split(",");
 /**
  * Tools no eval needs and none may reach: they act outside the instance or can't be undone by the cleanup. --allow
- * lifts one for a skill that needs it, e.g. deploy_public for ship-app (it replaces the instance's pb_public, which
+ * lifts one for a case that needs it, e.g. deploy_public (it replaces the instance's pb_public, which
  * the cleanup cannot put back).
  */
 const BLOCKED = [
