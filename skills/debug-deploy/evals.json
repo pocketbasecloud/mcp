@@ -1,0 +1,32 @@
+{
+  "skill": "debug-deploy",
+  "cases": [
+    {
+      "id": "did-it-fail",
+      "prompt": "My last deploy of {instance} failed. Why?",
+      "connection": { "read_only": false },
+      "must_call": ["list_deployments"],
+      "must_not_call": ["@write"],
+      "answer_must": ["says what the latest deployments of the instance show, without inventing a failure the log does not show"]
+    },
+    {
+      "id": "is-it-down",
+      "prompt": "Is {instance} down? My app can't reach it.",
+      "connection": { "read_only": false },
+      "must_call": ["diagnose_resource"],
+      "must_not_call": ["@write"],
+      "answer_must": ["reports the instance's status from diagnose_resource"]
+    },
+    {
+      "id": "read-only",
+      "prompt": "My last deploy of {instance} failed. Why?",
+      "connection": { "read_only": true },
+      "must_call": ["list_deployments"],
+      "must_not_call": ["@write"],
+      "answer_must": ["says what the latest deployments of the instance show"]
+    }
+  ],
+  "boundaries": [
+    { "prompt": "The build of my frontend failed on PocketBase Cloud", "expected_skill": "debug-deploy", "should_not_trigger": "investigate-errors", "scope": "account" }
+  ]
+}
