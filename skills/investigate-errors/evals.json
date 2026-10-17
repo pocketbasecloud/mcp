@@ -1,0 +1,47 @@
+{
+  "skill": "investigate-errors",
+  "cases": [
+    {
+      "id": "empty-list-signed-in",
+      "prompt": "In eval-shop, users say their orders page is empty, but there are orders in the dashboard.",
+      "connection": { "read_only": false },
+      "must_call": ["diagnose_resource", "get_request_logs", "get_collection"],
+      "must_not_call": ["apply_collections", "delete_collection"],
+      "answer_must": [
+        "reads data.auth of the list requests",
+        "names the listRule condition that filters the orders out, or says the requests run as visitors",
+        "does not propose opening the list to everyone"
+      ]
+    },
+    {
+      "id": "hook-throws",
+      "prompt": "After my last hooks deploy, creating a comment in eval-shop fails with 'Something went wrong while processing your request.'",
+      "connection": { "read_only": false },
+      "must_call": ["get_request_logs", "list_hooks"],
+      "answer_must": [
+        "filters the request log with level >= 8 or equivalent, not only status >= 500",
+        "quotes the error the hook threw",
+        "asks for the hook file or explains the fix before deploying it"
+      ]
+    },
+    {
+      "id": "forbidden-update",
+      "prompt": "In eval-shop, editing a product returns 403 'Only superusers can perform this action.'",
+      "connection": { "read_only": false },
+      "must_call": ["get_collection"],
+      "must_call_before": [["get_collection", "update_api_rules"]],
+      "answer_must": ["says the updateRule is null", "proposes a rule limited to staff or owners and waits for approval"]
+    },
+    {
+      "id": "read-only",
+      "prompt": "In eval-shop, creating posts fails with 'Failed to create record.'",
+      "connection": { "read_only": true },
+      "must_not_call": ["update_api_rules", "apply_collections", "deploy_hooks"],
+      "answer_must": ["names the cause from the request log details", "gives the exact rule or field change", "says how to reconnect to apply it"]
+    }
+  ],
+  "boundaries": [
+    { "prompt": "My last deploy of eval-shop failed", "expected_skill": "debug-deploy", "should_not_trigger": "investigate-errors" },
+    { "prompt": "Why does my app get 403 when users edit their profile in eval-shop?", "expected_skill": "investigate-errors", "should_not_trigger": "debug-deploy" }
+  ]
+}

@@ -1,6 +1,6 @@
 ---
 name: debug-deploy
-description: "Find out why a deploy on PocketBase Cloud failed, or why a deployed app does not start, and give the concrete fix. Use when the user says a deploy failed, a build broke, their frontend, backend or PocketBase instance is down or erroring, or asks what is wrong with a resource. Reads the failed deployment's build log and the runtime logs, then gives the redeploy command."
+description: "Find out why a deploy on PocketBase Cloud failed, or why a deployed app does not start, and give the concrete fix. Use when the user says a deploy failed, a build broke, or their frontend, backend or PocketBase instance is down or won't start. Reads the failed deployment's build log and the runtime logs, then gives the redeploy command. Not for errors a running PocketBase instance returns to the app: use investigate-errors."
 ---
 
 # Debug a failed deploy
