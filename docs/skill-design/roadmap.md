@@ -416,7 +416,7 @@ guides, so a client without skills can read them on demand.
 Skills reach Claude Code and Cursor users when the marketplace updates, so a skills-only release still bumps the
 version in every manifest (see [publishing.md](../publishing.md)). Every bump is a new MCP Registry version and a
 Cursor Marketplace re-review, so the P0 skills ship together, not one by one. Server-side, B4 (the shared rules in
-`INSTRUCTIONS`) lands before 1.2.0; pbc-mcp PR #2's `search_docs` v2 and `install_template` follow in their own
+`INSTRUCTIONS`) landed on 2026-10-17 (pbc-mcp #17); pbc-mcp PR #2's `search_docs` v2 and `install_template` follow in their own
 releases ([README](README.md#relationship-to-pbc-mcp-pr-2-decided-2026-10-17)). Suggested order:
 
 | Version | Content |
