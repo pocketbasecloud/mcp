@@ -6,9 +6,10 @@
       "prompt": "In {instance}, I'm building a recipe app: recipes anyone can read and only their author edits, their ingredients, and ratings and favorites each user keeps to themselves.",
       "connection": { "read_only": false },
       "must_call": ["list_collections", "get_collection", "preview_collections"],
+      "must_call_matching": [["preview_collections", "_pb_users_auth_"]],
       "must_not_call": ["@write"],
       "answer_must": [
-        "relates ratings and favorites to users and recipes by collection id",
+        "relates ratings and favorites to users and recipes",
         "proposes a unique index on (user, recipe) for favorites",
         "guards the author and the user fields so nobody acts as someone else",
         "asks for approval of the previewed change before applying"
@@ -28,7 +29,7 @@
       "must_call": ["list_collections"],
       "must_not_call": ["@write"],
       "answer_must": [
-        "keeps the existing collections untouched",
+        "keeps the existing collections' fields and records, naming any addition to them (such as a role on users)",
         "limits public reads to published posts",
         "guards the author so nobody posts as someone else",
         "asks for approval before applying"

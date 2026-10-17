@@ -243,8 +243,16 @@ async function turn({ cwd, text, resume, plugin, readOnly, stopAtSkill }) {
     "--allowedTools", ...(plugin ? ["Skill"] : []), "Read", "Glob", "Grep", "mcp__pocketbasecloud",
     "--disallowedTools", ...(plugin ? [] : ["Skill"]), "Bash", "Write", "Edit", "NotebookEdit", "WebFetch", "WebSearch", "Agent", "Task", ...BLOCKED,
   ];
+  // A boundary run stops at the first Skill call, or after three server calls without one: an agent may look up the
+  // instance before it picks a skill.
+  let serverCalls = 0;
   const stop = stopAtSkill
-    ? (line) => (/"type":"tool_use"/.test(line) && /"name":"(Skill|mcp__)/.test(line) ? "stop" : undefined)
+    ? (line) => {
+        if (!/"type":"tool_use"/.test(line)) return undefined;
+        if (/"name":"Skill"/.test(line)) return "stop";
+        if (/"name":"mcp__/.test(line) && ++serverCalls >= 3) return "stop";
+        return undefined;
+      }
     : undefined;
   const { code, out } = await run("claude", args, cwd, 12 * 60_000, stop);
   const ev = events(out);

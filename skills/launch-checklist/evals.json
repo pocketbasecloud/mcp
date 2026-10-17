@@ -20,7 +20,7 @@
       "connection": { "read_only": true },
       "must_call": ["check_security", "list_backups"],
       "must_not_call": ["@write"],
-      "answer_must": ["gives the full report, since every check reads", "says how to apply a fix after reconnecting with read and write"]
+      "answer_must": ["gives the scored report, with a status for each check", "says how to apply a fix after reconnecting with read and write"]
     },
     {
       "id": "what-did-i-forget",
