@@ -67,8 +67,8 @@ flowchart LR
 | A1 | Check that skills name only real tools. | `tools.json` (new, fetched from the server repo at a pinned tag), `scripts/validate.mjs`, `scripts/validate.test.mjs`, the CI workflow | `npm run validate` fails on a backticked tool-like name (a verb from `tools.json`, `_`, words) that `tools.json` doesn't list, in any `SKILL.md` or `references/*.md`; CI fails when the committed `tools.json` differs from the server repo's at the pinned tag. |
 | A2 | A schema for `skills/<name>/evals.json`, checked by `validate.mjs`. | `scripts/validate.mjs`, `scripts/validate.test.mjs` | Every skill folder has `evals.json` with at least 3 cases, one of them on a read-only connection, and every tool it names is in `tools.json`. Existing skills get theirs too. |
 | A3 | One rule cookbook, copied into each skill that needs it. | `docs/skill-design/shared/rules.md`, `scripts/sync-references.mjs`, `package.json` (`npm run sync`) | `npm run validate` fails when a skill's `references/rules.md` differs from the shared copy. |
-| A4 | A fixture instance on QA with planted problems, and a way to reset it. | Server repo: `scripts/eval-fixture.ts` (uses the server's own tools through an MCP client, like `scripts/smoke.ts`) | One command recreates `eval-shop` with: a public `deleteRule` on `posts`, `orders` sorted by `created` with no index, `products.price` as text, a hook that throws on `comments` create, and 50 seed records. |
-| A5 | An eval runner. | `scripts/run-evals.mjs`, `evals/mcp.rw.json`, `evals/mcp.ro.json`, `evals/judge.md` | Runs each case N = 3 times with and without the plugin, resets the fixture through the server checkout named in `PBC_MCP_DIR`, and writes `evals/results.csv` (case, skill on/off, run, tools called, skill loaded, must/must-not verdicts, judge verdicts). See [Running evals](#running-evals). |
+| A4 | Fixtures with planted problems, and a reset. | **Partly done** (2026-10-17): `evals/fixture.json` here, applied by the runner through the server's own tools. Has `eval_posts` (rules and an index naming `title`, two repeated slugs) and `eval_products` (`price` as text with `free`, `12,50`, empty). | Still to add for investigate-errors: a signed-in user's list requests on an owner-only collection, a hook that throws on create, a 403 and a failed create in the request log. |
+| A5 | An eval runner. | **Done** (2026-10-17): `evals/run-evals.mjs`, `evals/score.mjs`, `evals/mcp-client.mjs`, `evals/judge.md`; `npm run eval` | Runs each case N times with and without the plugin on one instance, resets it per case, scores every turn, and writes `evals/results/`. See [Running evals](#running-evals). |
 
 ### A1 in code
 
@@ -257,26 +257,30 @@ change → back up when data can be lost → apply → check.>
 
 ### How `run-evals.mjs` runs a case
 
-1. Reset the fixture (A4). The fixture script lives in the server repository; the runner takes that checkout's path
-   in `PBC_MCP_DIR` and runs the reset there. CI checks out both repositories.
-2. Run Claude Code headless against the QA server with a CLI token, once with the plugin and once without:
+```
+PBC_TOKEN=<CLI token> npm run eval -- --instance <id> --project <id> --skill change-schema [--case <id>] \
+  [--runs 3] [--branches with,without] [--no-boundaries] [--model opus] [--server <url>]
+```
 
-   ```
-   claude -p "<prompt>" --output-format stream-json --verbose \
-     --mcp-config evals/mcp.rw.json --strict-mcp-config \
-     --allowedTools "mcp__pocketbasecloud__*" \
-     --plugin-dir .            # the "with skill" branch only
-   ```
+The instance is one the evals may change: its project scopes the connection (`project_ref`), and every prompt
+names it through `{instance}`. Before anything, the runner records the instance's own collections (definitions and
+counts), backups and hook files.
 
-   Two MCP config files carry the connection: `evals/mcp.rw.json` names the QA server's URL, `evals/mcp.ro.json`
-   the same URL with `?read_only=true`, for the read-only cases. Both put the token in the config's `headers` as
-   `Authorization: Bearer ${PBC_TOKEN}`; Claude Code expands environment variables in MCP config files, so the
-   token stays in the environment. `--strict-mcp-config` keeps the user's own servers out of the run, and
-   `--allowedTools` lets the server's tools run without a permission prompt, which a headless run can't answer.
-3. Read the `tool_use` events from the stream: the MCP tool names (`mcp__pocketbasecloud__<tool>`) in order, and
-   the `Skill` tool's `skill` argument, which says which skill the model loaded.
-4. Score `must_call`, `must_call_before` and `must_not_call` from that list; `answer_must` by the judge below.
-5. Append one row per run to `evals/results.csv`.
+1. **Reset** before each case: delete every collection the instance did not have at the start, then create the
+   case's `fixture` collections and records from `evals/fixture.json`, all through the server's own tools.
+2. **Run** Claude Code headless in a fresh directory, once with the plugin (`--plugin-dir`) and once without (the
+   `Skill` tool withheld), with `--setting-sources project` so the user's own plugins and hooks stay out, and an MCP
+   config written for the run (`?read_only=true` for read-only cases) that carries `Authorization: Bearer
+   ${PBC_TOKEN}`, which Claude Code expands from the environment. Tools that act outside the instance or can't be
+   undone by the cleanup are blocked: creating instances or projects, runtime config, continuous backup, deleting
+   records, crons, `deploy_public`, domains and environment variables.
+3. **Score** each turn from its `tool_use` events: `must_call`, `must_call_before`, `must_not_call`, the skill the
+   first `Skill` call loaded, and a `target` check that fails any write aimed at another instance. `answer_must`
+   goes to the judge below.
+4. **Clean up**: delete the backups and hook files the case made, and forget the Claude Code session.
+5. **Record** one row per check in `evals/results/results.csv`, and every tool call and reply in
+   `evals/results/<time>.json`. At the end the runner deletes what it made and compares the instance's own
+   collections with the start: a changed definition fails the run; a changed count is reported (the app may write).
 
 A single headless turn can't approve anything, so a correct skill stops and asks: every first turn's
 `must_not_call` holds `"@write"`, which the runner expands to every write tool of the server. A case's `approve`
@@ -297,17 +301,17 @@ skill's cases while writing it. Recompute from `turns × (input × $4 + output �
 
 **The judge for `answer_must`.** A second model call per run, on Claude Sonnet 5.5, with the final assistant text
 and each `answer_must` string. The prompt is `evals/judge.md`: for each string, answer `pass` or `fail` and quote
-the sentence that satisfies it; a pass without a quote counts as a fail. The judge sees no tool list and no skill,
-only the text. A human reads 10% of the verdicts per release and every disagreement between runs; a case whose
+the sentence that satisfies it; a pass without a quote counts as a fail, and so does a quote the runner can't find
+in the reply (`evals/score.mjs`). The judge runs with no tools and sees no skill, only the text. A human reads 10% of the verdicts per release and every disagreement between runs; a case whose
 checks the judge gets wrong twice gets a more literal `answer_must`.
 
-**Boundary tests.** A boundary prompt runs 3 times with the plugin, and the runner reads the first `Skill` call in
-the stream. Pass when it names `expected_skill` and `should_not_trigger` never appears. **Under-triggering** is no
+**Boundary tests.** A boundary prompt runs 3 times with the plugin on a read-only connection, and the runner reads
+the first `Skill` call in the stream, stopping the run there. Pass when it names `expected_skill` and `should_not_trigger` never appears. **Under-triggering** is no
 `Skill` call at all in any of the 3 runs, counted separately: it is the number that decides whether the router
 skill ships ([roadmap](roadmap.md#pocketbase-router)).
 
-**Where things live.** A4 (the fixture and its reset) is in the server repository, next to the tools it uses; A5
-(the runner, the MCP configs, the judge prompt, `results.csv`) is here, next to the skills it scores.
+**Where things live.** Everything is here, next to the skills it scores: the fixture is plain JSON the runner
+applies through the server's tools, so it needs no server checkout. Results stay local (`evals/results/` is ignored).
 
 **Release cost.** Every manifest version bump is a new MCP Registry version and a Cursor Marketplace re-review, so
 the P0 skills ship together as 1.2.0 once all of them pass, not one by one.
