@@ -44,7 +44,8 @@ Each kind has its own path; never mix a risky one with other changes in the same
 | Remove a field or a collection | Check that no rule, index, relation or hook uses it. `remove_fields` / `delete_collection` (opt-in `database_admin`), each after its own approval. |
 
 ### Step 3: Write the plan
-Number the steps and show them before the first change; each apply and each data step waits for its own approval.
+Number the steps and show them, with the preview of the first apply (step 4), before the first change; each apply
+and each data step waits for its own approval of what it will do.
 A type change runs all five; a new required field runs the first three, then is made required:
 1. **Expand:** add the new field (`price_new`), optional, through step 4.
 2. **Copy:** fill it from the old one (step 5).
