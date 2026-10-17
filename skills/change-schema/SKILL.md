@@ -35,7 +35,8 @@ Each kind has its own path; never mix a risky one with other changes in the same
 | Change | Path |
 |---|---|
 | Add an optional field, an index, change rules | One `apply_collections`. Send the existing indexes too: a listed `indexes` replaces them. |
-| Add a required field, or make one required | Add it optional, fill it, check `count_records` finds no empty one, then make it required. Required straight away is accepted, but then every edit of an old record without it fails. |
+| Add a required field | Add it optional, fill it (step 5), check `count_records` finds no empty one, then make it required. Required straight away is accepted, but then every edit of an old record without it fails. |
+| Make an existing field required | `count_records` with `filter` `<field> = ''`; fill those (step 5), then make it required. |
 | Rename a field | One `apply_collections` sending the field **with its `id`** under the new name, **and every rule and index that names it, rewritten**. Without the id the data stays in the old field. An index left on the old name is refused before anything changes (the preview shows it under `blocked`); a rule left on it is refused when applied, with nothing changed. Then the hooks and the app code. |
 | Change a field's type | Refused, and the error offers `remove_fields` then adding it again: that loses the data, never take it. Expand and contract instead (step 3). |
 | Add a `UNIQUE` index | Find duplicates first (step 5); the preview warns too. Then the index alone in its own `apply_collections`. |
@@ -54,15 +55,18 @@ A type change runs all five; a new required field runs the first three, then is 
 The app reads the new field between copy and contract if it must keep working; otherwise plan a quiet window.
 
 ### Step 4: Each apply: preview, ask, back up, apply
-If the app keeps `pb_migrations/` in git: `preview_collections` with `migration: true`, and have the user commit and
-deploy that file; apply live too only if they agree. Otherwise: `preview_collections`, show what changes and what
-resets to a default, get approval of that change, `create_backup` (`before-<change>.zip`), then `apply_collections`.
+`preview_collections` (`migration: true` when the app keeps `pb_migrations/` in git); show what changes and what
+resets to a default, and get approval of that change. After approval, `create_backup` first (`before-<change>.zip`). Then, if the app keeps `pb_migrations/` in git: the user
+commits and deploys the file `preview_collections` gave with `migration: true`, once the preview's `blocked` is empty
+and duplicates under a new `UNIQUE` index are settled (the file runs without pbc-mcp's checks); apply live too only
+if they agree. Otherwise `apply_collections` with the same definitions.
 
 ### Step 5: The data step
 Only once the field it fills exists.
 - **Copying values:** `list_records` with `fields` `id,<field>`, 50 a page. Show the user how values convert and
   every value that does not (`"12,50"`, `"free"`), and get approval before writing. Then `upsert_records` with each
-  record's `id` and the new value, up to 100 a call; other fields are kept. Each write runs the app's hooks, moves
+  record's `id` and the new value, up to 100 a call; other fields are kept. Its `created` must stay 0: a record
+  deleted since the listing would come back as a new one. Each write runs the app's hooks, moves
   `updated` and sends realtime events, like an edit in the app: say so. More than a few thousand records: propose a
   migration or a one-off hook instead, and say it has not been run (see Rules).
 - **Proving it:** `count_records` with groups that must come out right, e.g. `{"copied": "price_new > 0",
@@ -78,9 +82,10 @@ cannot build an **index** (duplicates under a `UNIQUE`), the database is unchang
 refused change until it restarts, and `get_collection` shows it (checked on PocketBase 0.40.5):
 - **The index alone:** records still save. Leave that index out of the next request, which then applies normally.
 - **With added or renamed fields:** updating records and changing the collection again fail until the instance
-  restarts. Tell the user at once, and ask before restarting: it interrupts the app for a moment. After approval:
-  `get_resource` for `runtimeFlags.queryTimeout`, `update_pocketbase_config` with it one second more (the platform
-  restarts the instance), then with the old value (a second restart), then `get_collection` again.
+  restarts. Tell the user at once, and ask before restarting: it restarts twice and interrupts the app for a moment
+  each time. After approval: `get_resource` for `runtimeFlags.queryTimeout`, `update_pocketbase_config` with it one
+  second more (one less at the maximum, 3600), which restarts the instance, then with the old value, then
+  `get_collection` again.
 
 ### Step 7: Check
 `count_records` with the groups of step 5. `check_security` if rules changed; `check_performance` if indexes did.

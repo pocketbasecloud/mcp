@@ -35,7 +35,7 @@ const WRITE_TOOLS = [
   "delete_record", "create_backup", "run_cron", "truncate_collection", "delete_collection", "remove_fields",
   "restore_backup", "delete_backup",
 ];
-/** Skills that only read: every case of theirs forbids every write tool (implementation.md, Definition of done). */
+/** Skills that only read: no case of theirs has an approve turn (implementation.md, Definition of done). */
 const READ_ONLY_SKILLS = new Set(["launch-checklist"]);
 
 const MANIFESTS = [
@@ -180,9 +180,12 @@ export function validate(root) {
   return errors;
 }
 
+/** In an eval's must_not_call: every write tool of the server. */
+const ALL_WRITES = "@write";
+
 /**
- * A skill's evals.json: each case's first turn may only read, since a headless turn can't approve anything, and must
- * forbid every write tool its `approve` turn (the user saying yes) is expected to call. Tools must exist.
+ * A skill's evals.json. A headless turn can't approve anything, so each case's first turn forbids every write tool
+ * (`@write`) and requires none; the apply path is its `approve` turn, the user's reply. Tools and skills must exist.
  */
 function checkEvals(root, skill, errors) {
   const file = `skills/${skill}/evals.json`;
@@ -197,31 +200,35 @@ function checkEvals(root, skill, errors) {
   const cases = Array.isArray(evals.cases) ? evals.cases : [];
   if (cases.length < 3) errors.push(`${file}: needs at least 3 cases, not ${cases.length}.`);
   if (!cases.some((c) => c.connection?.read_only === true)) errors.push(`${file}: needs a read-only case.`);
-  const known = new Set([...READ_TOOLS, ...WRITE_TOOLS]);
+  const known = new Set([...READ_TOOLS, ...WRITE_TOOLS, ALL_WRITES]);
   const writes = new Set(WRITE_TOOLS);
+  const required = (turn) => [...(turn.must_call ?? []), ...(turn.must_call_before ?? []).flat()];
   for (const c of cases) {
     const at = `${file} case "${c.id}"`;
-    const turns = [c, ...(c.approve ? [c.approve] : [])];
-    for (const turn of turns) {
-      const named = [...(turn.must_call ?? []), ...(turn.must_call_before ?? []).flat(), ...(turn.must_not_call ?? [])];
-      for (const tool of named) if (!known.has(tool)) errors.push(`${at}: no tool is called ${tool}.`);
-    }
-    const required = (turn) => [...(turn.must_call ?? []), ...(turn.must_call_before ?? []).flat()];
-    for (const tool of new Set(required(c))) {
-      if (writes.has(tool)) errors.push(`${at}: the first turn can't approve ${tool}; expect it under approve.`);
-    }
-    const forbidden = new Set(c.must_not_call ?? []);
-    if (c.approve) {
-      for (const tool of new Set(required(c.approve))) {
-        if (writes.has(tool) && !forbidden.has(tool)) {
-          errors.push(`${at}: ${tool} runs after approval, so the first turn's must_not_call must name it.`);
-        }
+    for (const turn of [c, ...(c.approve ? [c.approve] : [])]) {
+      for (const tool of [...required(turn), ...(turn.must_not_call ?? [])]) {
+        if (!known.has(tool)) errors.push(`${at}: no tool is called ${tool}.`);
       }
     }
-    if (READ_ONLY_SKILLS.has(skill)) {
-      if (c.approve) errors.push(`${at}: ${skill} only reads, so it has no approve turn.`);
-      const missing = WRITE_TOOLS.filter((t) => !forbidden.has(t));
-      if (missing.length > 0) errors.push(`${at}: ${skill} only reads; must_not_call lacks ${missing.join(", ")}.`);
+    for (const tool of new Set(required(c))) {
+      if (writes.has(tool) || tool === ALL_WRITES) {
+        errors.push(`${at}: the first turn can't approve ${tool}; expect it under approve.`);
+      }
+    }
+    if (!(c.must_not_call ?? []).includes(ALL_WRITES)) {
+      errors.push(`${at}: the first turn's must_not_call must name ${ALL_WRITES}, since nothing is approved yet.`);
+    }
+    if (c.approve) {
+      if (READ_ONLY_SKILLS.has(skill)) errors.push(`${at}: ${skill} only reads, so it has no approve turn.`);
+      if (typeof c.approve.reply !== "string" || c.approve.reply.trim() === "") {
+        errors.push(`${at}: approve needs the user's reply.`);
+      }
+    }
+  }
+  const skills = new Set(readdirSync(join(root, "skills"), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name));
+  for (const b of evals.boundaries ?? []) {
+    for (const name of [b.expected_skill, b.should_not_trigger]) {
+      if (!skills.has(name)) errors.push(`${file} boundary "${b.prompt}": no skill is called ${name}.`);
     }
   }
 }

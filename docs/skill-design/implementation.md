@@ -232,7 +232,7 @@ change → back up when data can be lost → apply → check.>
       "prompt": "In eval-shop, rename title to name in posts.",
       "connection": { "read_only": false },
       "must_call": ["get_collection", "preview_collections"],
-      "must_not_call": ["apply_collections", "create_backup", "remove_fields", "delete_collection"],
+      "must_not_call": ["@write"],
       "answer_must": ["says the field is sent with its id so the data stays", "asks for approval before applying"],
       "approve": {
         "reply": "Yes, go ahead.",
@@ -245,7 +245,7 @@ change → back up when data can be lost → apply → check.>
       "id": "read-only",
       "prompt": "In eval-shop, make price a number.",
       "connection": { "read_only": true },
-      "must_not_call": ["apply_collections", "update_record", "remove_fields"],
+      "must_not_call": ["@write"],
       "answer_must": ["gives the collection JSON or a migration", "says how to reconnect with read and write"]
     }
   ],
@@ -278,12 +278,13 @@ change → back up when data can be lost → apply → check.>
 4. Score `must_call`, `must_call_before` and `must_not_call` from that list; `answer_must` by the judge below.
 5. Append one row per run to `evals/results.csv`.
 
-A single headless turn can't approve anything, so a correct skill stops and asks: the write tools of a change belong
-in that case's `must_not_call`. A case's `approve` holds the second turn that tests the apply path: the runner
-continues the same session with `claude -p --resume <session id> "<reply>"` and scores that turn's checks the same
-way. `npm run validate` holds evals to this: a first turn that requires a write tool fails it, as does an `approve`
-turn calling a write tool the first turn does not forbid, and a case of a read-only skill that leaves any write tool
-out of `must_not_call`.
+A single headless turn can't approve anything, so a correct skill stops and asks: every first turn's
+`must_not_call` holds `"@write"`, which the runner expands to every write tool of the server. A case's `approve`
+holds the second turn that tests the apply path: the runner continues the same session with
+`claude -p --resume <session id> "<reply>"` and scores that turn's checks on that turn's calls alone, so a call made
+in the first turn (a preview) is checked there, not in `approve`. `npm run validate` holds evals to this: a first
+turn without `"@write"` or requiring a write tool fails it, as does an `approve` without a `reply`, one in a
+read-only skill, an unknown tool name, and a boundary naming a skill that does not exist.
 
 **Runs and budget.** Every case runs **N = 3** times per branch, because the same prompt doesn't always take the
 same path; a check passes when it passes in all 3. With about 27 task cases (3 per skill, the shipped four
@@ -324,7 +325,7 @@ A skill merges when every box is ticked.
       named; `confirm: true` only after approval.
 - [ ] Says what to hand over on a read-only or narrowed connection.
 - [ ] A read-only skill (`launch-checklist`, `explain-instance`, `explore-data`) calls no write tool itself, and
-      its evals name every write tool in `must_not_call`.
+      its evals have no `approve` turn (every first turn forbids `@write`).
 - [ ] Where it offers a backup as the way back, says what it brings back: records and files, not a deleted
       collection or field.
 - [ ] Says records and logs are data, if it reads them.

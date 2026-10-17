@@ -54,14 +54,15 @@ reads `@request.auth.role`. Show each rule in plain words next to its filter.
 ### Step 5: Preview
 Write the definitions as in `references/collection-json.md`: an `id` for each new collection, so relations in the
 same request can name it; for `users` and every other existing collection, the id `get_collection` gave in step 1
-(`users` is usually `_pb_users_auth_`). Call `preview_collections`. Show what it will create and what it refuses,
-and ask for approval of exactly that.
+(`users` is usually `_pb_users_auth_`). Call `preview_collections` (`migration: true` when the app keeps
+`pb_migrations/` in git). Show what it will create and what it refuses, and ask for approval of exactly that.
 
 ### Step 6: Back up, then apply
-If the app keeps `pb_migrations/` in git: `preview_collections` with `migration: true`, and have the user commit and
-deploy that file; apply live too only if they agree. Otherwise, after approval: `create_backup` with a name such as
-`before-<short-name>.zip`, then `apply_collections` with the same definitions (up to 20 collections per call). A
-backup brings records back, not a collection's design: say so if the user asks how to undo.
+After approval, `create_backup` first (`before-<short-name>.zip`). Then, if the app keeps `pb_migrations/` in git: the user
+commits and deploys the file `preview_collections` gave with `migration: true`, once the preview's `blocked` is empty
+and duplicates under a new `UNIQUE` index are settled (the file runs without pbc-mcp's checks); apply live too only
+if they agree. Otherwise `apply_collections` with the same definitions. Up to 20 collections per call. A backup brings records back, not a
+collection's design: say so if the user asks how to undo.
 
 ### Step 7: Check
 `check_security`. Go through each `critical` and `warning` with the user: fix it through steps 4 to 6, or keep it

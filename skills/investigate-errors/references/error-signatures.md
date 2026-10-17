@@ -19,7 +19,8 @@ Entries are written a few seconds after the request.
 | 401 "The request requires valid record authorization token." | status 401 | An endpoint that needs a signed-in user (`auth-refresh`) | The client's sign-in |
 
 Filters for `get_request_logs`. The tools call the instance as a superuser, so their own requests land in the same
-log with `auth` "_superusers"; `data.auth != '_superusers'` leaves them out (checked on PocketBase 0.40.5).
+log with `auth` "_superusers"; `data.auth != '_superusers'` leaves them out (checked on PocketBase 0.40.5), and
+with them the user's own superuser requests (the admin UI, a backend with a superuser token): drop it to see those.
 
 | To see | Filter |
 |---|---|

@@ -33,7 +33,7 @@ A refused rule or field changes nothing, and pbc-mcp refuses an index naming a f
 before PocketBase sees it. When PocketBase itself cannot build an index (a `UNIQUE` over duplicate values), the
 database is unchanged but the running instance keeps the refused change until it restarts: alone, records still
 save; with added or renamed fields, updating records and further changes fail until a restart (checked on PocketBase
-0.40.5). The error says which; see the `change-schema` skill's step 5.
+0.40.5). The error says which; see the `change-schema` skill's step 6.
 
 ## A full example
 

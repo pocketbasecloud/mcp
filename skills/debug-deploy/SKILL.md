@@ -56,6 +56,10 @@ setting to change.
 Once the user has fixed it, call `get_deploy_command` with `kind` and `resource`, and give them the exact `pbc`
 command to run in the directory that holds the code.
 
+### Last step: Next
+
+After the redeploy, `diagnose_resource` again; `investigate-errors` if the app then runs but its requests fail.
+
 ---
 
 ## Rules

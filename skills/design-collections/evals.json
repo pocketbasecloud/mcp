@@ -6,7 +6,7 @@
       "prompt": "In eval-shop, I'm building a recipe app: recipes anyone can read and only their author edits, their ingredients, and ratings and favorites each user keeps to themselves.",
       "connection": { "read_only": false },
       "must_call": ["list_collections", "get_collection", "preview_collections"],
-      "must_not_call": ["apply_collections", "create_backup", "update_api_rules", "upsert_records", "create_records", "delete_collection", "remove_fields"],
+      "must_not_call": ["@write"],
       "answer_must": [
         "relates ratings and favorites to users and recipes by collection id",
         "proposes a unique index on (user, recipe) for favorites",
@@ -15,8 +15,7 @@
       ],
       "approve": {
         "reply": "Yes, go ahead.",
-        "must_call_before": [["preview_collections", "apply_collections"], ["create_backup", "apply_collections"]],
-        "must_call": ["check_security"],
+        "must_call_before": [["create_backup", "apply_collections"], ["apply_collections", "check_security"]],
         "must_not_call": ["delete_collection", "remove_fields", "truncate_collection", "upsert_records", "create_records"],
         "answer_must": ["names the backup", "goes through each critical and warning finding of check_security"]
       }
@@ -26,7 +25,7 @@
       "prompt": "Add a blog to eval-shop.",
       "connection": { "read_only": false },
       "must_call": ["list_collections"],
-      "must_not_call": ["apply_collections", "create_backup", "update_api_rules", "delete_collection", "remove_fields", "truncate_collection"],
+      "must_not_call": ["@write"],
       "answer_must": [
         "keeps the existing collections untouched",
         "limits public reads to published posts",
@@ -38,7 +37,7 @@
       "id": "read-only",
       "prompt": "In eval-shop, design collections for a booking app: services and bookings.",
       "connection": { "read_only": true },
-      "must_not_call": ["apply_collections", "create_backup", "update_api_rules"],
+      "must_not_call": ["@write"],
       "answer_must": [
         "gives the collection JSON",
         "gives a pb_migrations file or says preview_collections with migration: true makes one",

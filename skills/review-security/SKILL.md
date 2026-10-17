@@ -54,6 +54,11 @@ Ask before changing anything. Once the user agrees, call `update_api_rules` with
 
 Run `check_security` again and show what is left.
 
+### Last step: Next
+
+`setup-user-accounts` when a rule needs an owner field the collection lacks; `launch-checklist` when the app is
+about to go live.
+
 ---
 
 ## Rules

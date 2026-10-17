@@ -73,21 +73,36 @@ test("an eval whose first turn needs a write tool is caught, since one headless 
   assert.match(validate(dir).join("\n"), /change-schema\/evals\.json.*apply_collections.*approve/);
 });
 
-test("a write tool the approved turn calls but the first turn allows is caught", () => {
+test("a first turn that leaves write tools allowed is caught", () => {
   const dir = copy();
-  edit(dir, "skills/change-schema/evals.json", (e) => {
-    const c = e.cases.find((c) => c.approve);
-    c.must_not_call = c.must_not_call.filter((t) => t !== "create_backup");
+  edit(dir, "skills/investigate-errors/evals.json", (e) => {
+    e.cases[1].must_not_call = e.cases[1].must_not_call.filter((t) => t !== "@write");
   });
-  assert.match(validate(dir).join("\n"), /change-schema\/evals\.json.*create_backup.*must_not_call/);
+  assert.match(validate(dir).join("\n"), /investigate-errors\/evals\.json case "hook-throws".*@write/);
 });
 
-test("a read-only skill's eval that leaves a write tool unforbidden is caught", () => {
+test("a read-only skill's eval with an approve turn is caught", () => {
   const dir = copy();
   edit(dir, "skills/launch-checklist/evals.json", (e) => {
-    e.cases[0].must_not_call = e.cases[0].must_not_call.filter((t) => t !== "verify_domain");
+    e.cases[0].approve = { reply: "Yes, back it up.", must_call: ["create_backup"] };
   });
-  assert.match(validate(dir).join("\n"), /launch-checklist\/evals\.json.*verify_domain/);
+  assert.match(validate(dir).join("\n"), /launch-checklist\/evals\.json.*only reads/);
+});
+
+test("an approve turn without a reply is caught", () => {
+  const dir = copy();
+  edit(dir, "skills/change-schema/evals.json", (e) => {
+    delete e.cases.find((c) => c.approve).approve.reply;
+  });
+  assert.match(validate(dir).join("\n"), /change-schema\/evals\.json.*reply/);
+});
+
+test("a boundary naming a skill that does not exist is caught", () => {
+  const dir = copy();
+  edit(dir, "skills/change-schema/evals.json", (e) => {
+    e.boundaries[0].expected_skill = "design-collection";
+  });
+  assert.match(validate(dir).join("\n"), /change-schema\/evals\.json.*design-collection\b/);
 });
 
 test("an eval naming a tool the server does not have is caught", () => {

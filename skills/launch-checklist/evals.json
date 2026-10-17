@@ -6,7 +6,7 @@
       "prompt": "I'm launching the eval-shop app next week. Is it ready?",
       "connection": { "read_only": false },
       "must_call": ["get_plan", "check_security", "check_performance", "list_backups", "get_resource", "diagnose_resource"],
-      "must_not_call": ["create_project", "create_pocketbase", "update_pocketbase_config", "set_continuous_backup", "deploy_hooks", "deploy_public", "add_domain", "verify_domain", "remove_domain", "set_env_vars", "delete_env_vars", "apply_collections", "update_api_rules", "create_record", "create_records", "upsert_records", "update_record", "delete_record", "create_backup", "run_cron", "truncate_collection", "delete_collection", "remove_fields", "restore_backup", "delete_backup"],
+      "must_not_call": ["@write"],
       "answer_must": [
         "prints a score computed as 100 minus 15 per failed check and 5 per warned check, one status per check",
         "cites a tool for every pass, warn and fail",
@@ -19,7 +19,7 @@
       "prompt": "Run the launch checklist on eval-shop.",
       "connection": { "read_only": true },
       "must_call": ["check_security", "list_backups"],
-      "must_not_call": ["create_project", "create_pocketbase", "update_pocketbase_config", "set_continuous_backup", "deploy_hooks", "deploy_public", "add_domain", "verify_domain", "remove_domain", "set_env_vars", "delete_env_vars", "apply_collections", "update_api_rules", "create_record", "create_records", "upsert_records", "update_record", "delete_record", "create_backup", "run_cron", "truncate_collection", "delete_collection", "remove_fields", "restore_backup", "delete_backup"],
+      "must_not_call": ["@write"],
       "answer_must": ["gives the full report, since every check reads", "says how to apply a fix after reconnecting with read and write"]
     },
     {
@@ -27,7 +27,7 @@
       "prompt": "What did I forget before launching eval-shop?",
       "connection": { "read_only": false },
       "must_call": ["check_security", "get_resource"],
-      "must_not_call": ["create_project", "create_pocketbase", "update_pocketbase_config", "set_continuous_backup", "deploy_hooks", "deploy_public", "add_domain", "verify_domain", "remove_domain", "set_env_vars", "delete_env_vars", "apply_collections", "update_api_rules", "create_record", "create_records", "upsert_records", "update_record", "delete_record", "create_backup", "run_cron", "truncate_collection", "delete_collection", "remove_fields", "restore_backup", "delete_backup"],
+      "must_not_call": ["@write"],
       "answer_must": [
         "lists the variables check as not checked, since list_env_vars is not on this connection",
         "says what no tool could read instead of assuming it"

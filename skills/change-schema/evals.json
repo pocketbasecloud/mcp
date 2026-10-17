@@ -6,7 +6,7 @@
       "prompt": "In eval-shop, rename title to name in posts.",
       "connection": { "read_only": false },
       "must_call": ["get_collection", "preview_collections"],
-      "must_not_call": ["apply_collections", "create_backup", "update_api_rules", "upsert_records", "update_record", "remove_fields", "delete_collection"],
+      "must_not_call": ["@write"],
       "answer_must": [
         "sends the field with its id under the new name, so the data stays",
         "rewrites the rules and indexes that name title in the same request",
@@ -24,11 +24,12 @@
       "id": "text-to-number",
       "prompt": "In eval-shop, make products.price a number; it is text now.",
       "connection": { "read_only": false },
-      "must_call": ["get_collection", "count_records"],
-      "must_not_call": ["apply_collections", "create_backup", "upsert_records", "update_record", "remove_fields", "delete_collection"],
+      "must_call": ["get_collection", "count_records", "preview_collections"],
+      "must_not_call": ["@write"],
       "answer_must": [
         "never sends price with the number type in place of the text one",
         "plans the steps in order: add a new field, copy the values, prove the copy with counts, remove the old field, rename the new one",
+        "shows the preview of adding the new field and asks to apply it",
         "says removing the old field needs its own approval and restore_backup cannot bring it back"
       ],
       "approve": {
@@ -43,7 +44,7 @@
       "prompt": "In eval-shop, make posts.slug unique.",
       "connection": { "read_only": false },
       "must_call": ["get_collection", "list_records"],
-      "must_not_call": ["apply_collections", "create_backup", "update_record", "upsert_records", "delete_record"],
+      "must_not_call": ["@write"],
       "answer_must": [
         "looks for duplicate slugs before adding the index",
         "keeps the existing indexes in the list",
@@ -54,7 +55,7 @@
       "id": "read-only",
       "prompt": "In eval-shop, make products.price a number.",
       "connection": { "read_only": true },
-      "must_not_call": ["apply_collections", "create_backup", "upsert_records", "update_record", "remove_fields"],
+      "must_not_call": ["@write"],
       "answer_must": ["gives the plan and the collection JSON", "gives a pb_migrations file or says how to get one", "says how to reconnect with read and write"]
     }
   ],

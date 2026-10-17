@@ -57,7 +57,9 @@ Show the preview and ask before changing anything.
 Once the user agrees:
 
 1. Call `create_backup` with `resource` (and a `name` such as `before-user-accounts.zip`; it must end in `.zip`).
-2. Call `apply_collections` with `resource` and `collections`.
+2. If the app keeps `pb_migrations/` in git: the user commits and deploys the migration file, once the preview's
+   `blocked` is empty (the file runs without pbc-mcp's checks); apply live too only if they agree. Otherwise call
+   `apply_collections` with `resource` and `collections`.
 
 `apply_collections` never deletes collections or fields, and refuses to change the type of an existing field.
 
@@ -70,6 +72,11 @@ Run `check_security` and fix any `critical` or `warning` finding with the **revi
 Call `generate_types` with `resource` (and `collections` to limit it). Tell the user to save the result as a `.ts`
 file in their app, for the PocketBase JS SDK.
 
+### Last step: Next
+
+`design-collections` for the rest of the app's collections; `search_docs` for the SDK's sign-up, sign-in and
+OAuth2 code.
+
 ---
 
 ## Rules
@@ -79,5 +86,5 @@ file in their app, for the PocketBase JS SDK.
   `restore_backup` brings the records back, but not the collections as they were, since the instance replays
   collection changes when it restarts.
 - If `apply_collections` is not available, the connection is read-only or has no database tools: give the user
-  the collection JSON instead, to save as a file and import with `pbc admin collections import <file>` or the
-  admin UI's collections import.
+  the collection JSON and the `pb_migrations/` file from `preview_collections` with `migration: true`, or the JSON
+  to import with `pbc admin collections import <file>` or the admin UI's collections import.

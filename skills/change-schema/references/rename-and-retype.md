@@ -87,4 +87,4 @@ quiet window.
       "indexes": ["CREATE INDEX `idx_posts_name` ON `posts` (`name`)", "CREATE UNIQUE INDEX `idx_posts_slug` ON `posts` (`slug`)"] }]
    ```
 
-3. If it is refused anyway, read the error and see the skill's step 5: alone, the index leaves records saving.
+3. If it is refused anyway, read the error and see the skill's step 6: alone, the index leaves records saving.

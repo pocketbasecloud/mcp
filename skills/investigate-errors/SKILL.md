@@ -36,9 +36,11 @@ read the lines around them; a hook file that fails to load shows only there, not
 ### Step 2: Find the failing requests
 `get_request_logs` with `filter` `level >= 8 && data.auth != '_superusers'`: every failed request of the app,
 including those a hook threw (logged with status 0). The tools here call the instance as a superuser, so your own
-reads land in the same log; the `data.auth` condition leaves them out. Narrow it to the route the user named
-(`&& data.url ~ '/api/collections/posts'`). Entries are written a few seconds after the request: if the user just
-reproduced it and it is not there, read again.
+reads land in the same log; the `data.auth` condition leaves them out. It also hides the user's own superuser
+requests: when it comes back empty though `diagnose_resource` reported `server_errors`, or the user reproduced it in
+the admin UI, or their backend calls with a superuser token, read again without it. Narrow it to the route the user
+named (`&& data.url ~ '/api/collections/posts'`). Entries are written a few seconds after the request: if the user
+just reproduced it and it is not there, read once more, then ask them to retry.
 For an empty list, read the successful list requests on that route
 (`data.method = 'GET' && data.url ~ '/api/collections/posts/records' && data.auth != '_superusers'`) and their
 `data.auth`.
@@ -66,7 +68,7 @@ Say the cause in plain words, quoting at most three log entries, without tokens,
 - The app's code (no token sent, a wrong field name in a filter): say what to change, with the SDK call.
 
 ### Step 5: Check
-Have the user retry, then `get_request_logs` with the same filter (read again if the retry is not there yet): the
+Have the user retry, then `get_request_logs` with the same filter (once more if the retry is not there yet): the
 failure is gone and the request answers as intended. `diagnose_resource` once more when a hook was the cause.
 
 ### Last step: Next

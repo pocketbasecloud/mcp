@@ -73,6 +73,7 @@ Give the user the instance's address from `domain` (`https://<domain>`) and its 
 - If `create_project` or `create_pocketbase` is not available, the connection is read-only: say so, and tell the
   user to reconnect with read and write access.
 - Do not guess region codes or compute ids; use what `list_regions` returns.
+- No tool lists what a plan includes: give `plansUrl` from `get_plan` rather than saying it.
 
 ## Example
 
