@@ -23,7 +23,7 @@ const SKILL_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
  */
 export const READ_TOOLS = [
   "list_projects", "get_project", "get_plan", "list_regions", "get_overview", "list_resources", "get_resource",
-  "diagnose_resource", "get_logs", "list_deployments", "get_deployment", "get_deploy_command", "list_hooks",
+  "diagnose_resource", "get_logs", "list_deployments", "get_deployment", "get_deploy_command", "list_hooks", "get_hook",
   "check_domain", "list_env_vars", "list_collections", "get_collection", "list_records", "get_record",
   "count_records", "get_request_logs", "list_backups", "list_crons", "check_security", "check_performance",
   "generate_types", "preview_collections", "search_docs",

@@ -52,9 +52,9 @@ Match each entry with `references/error-signatures.md`; `data.details` and `data
 - `details` with a field name: the value the field refused. `get_collection` for its options.
 - "create rule failure": the `createRule`. 403 "Only superusers…": a `null` rule. 404 on one record: the view,
   update or delete rule hides it, or the id does not exist (`get_record` tells which).
-- Status 0 with an `error`: a hook or route threw. `list_hooks` shows the files; their code is not readable here,
-  so ask the user for the file the error points to, and `search_docs` the API it calls. "Invalid module" means a
-  `require()` names a file that is not on the instance.
+- Status 0 with an `error`: a hook or route threw. `list_hooks` names the files and `get_hook` reads one; the error's
+  location (`pb.js:2:54`) counts from the start of the handler, not the file. `search_docs` the API it calls.
+  "Invalid module" means a `require()` names a file that is not on the instance.
 - An empty list with `auth` empty: the request ran as a visitor. The app sends no token, or one PocketBase did not
   accept, which it ignores rather than refuses. With `auth` "users": the `listRule` filters the records out;
   `count_records` shows how many exist.
@@ -66,9 +66,10 @@ Say the cause in plain words, quoting at most three log entries, without tokens,
 - A rule: from `references/rules.md`, the condition that allows the intended case and nothing more; apply it with
   `update_api_rules` after the user approves that exact rule.
 - A field option or an index: hand off to `change-schema`.
-- A hook: the corrected file from the user, then `deploy_hooks` after approval; `search_docs` first. Each
+- A hook: `get_hook` the file, change only what is broken, show it, then `deploy_hooks` after approval. Each
   `deploy_hooks` restarts the instance (a new container, seen in `get_logs`), so the app pauses for a moment: say so
-  when asking. It replaces files of the same name only; a backup does not hold `pb_hooks`.
+  when asking. It replaces the file whole, and a backup does not hold `pb_hooks`. More than a small fix: hand off to
+  `write-hooks`.
 - The app's code (no token sent, a wrong field name in a filter): say what to change, with the SDK call.
 
 ### Step 5: Check
@@ -76,7 +77,7 @@ Have the user retry, then `get_request_logs` with the same filter (once more if 
 failure is gone and the request answers as intended. `diagnose_resource` once more when a hook was the cause.
 
 ### Last step: Next
-`review-security` when the rules need a wider look than this one error; `change-schema` for a field or index fix;
+`review-security` when the rules need a wider look than this one error; `write-hooks` for new server code; `change-schema` for a field or index fix;
 `debug-deploy` when the instance itself does not start.
 
 ---
