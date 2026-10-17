@@ -12,6 +12,7 @@
     },
     {
       "id": "pick-region",
+      "expect_skill": false,
       "prompt": "I'm in Vietnam. Where should my new PocketBase instance run on PocketBase Cloud?",
       "scope": "account",
       "connection": { "read_only": false },

@@ -11,6 +11,7 @@
     },
     {
       "id": "is-it-down",
+      "expect_skill": false,
       "prompt": "Is {instance} down? My app can't reach it.",
       "connection": { "read_only": false },
       "must_call": ["diagnose_resource"],
