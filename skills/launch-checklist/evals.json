@@ -1,0 +1,36 @@
+{
+  "skill": "launch-checklist",
+  "cases": [
+    {
+      "id": "full-check",
+      "prompt": "I'm launching the eval-shop app next week. Is it ready?",
+      "connection": { "read_only": false },
+      "must_call": ["get_plan", "check_security", "check_performance", "list_backups", "get_resource", "diagnose_resource"],
+      "must_not_call": ["apply_collections", "update_api_rules", "create_backup", "set_continuous_backup", "update_pocketbase_config", "set_env_vars"],
+      "answer_must": [
+        "prints a score computed as 100 minus 15 per fail, 5 per warn and 1 per info",
+        "cites a tool for every pass, warn and fail",
+        "lists dev mode, SMTP and the superuser password under not checked or as questions"
+      ]
+    },
+    {
+      "id": "read-only",
+      "prompt": "Run the launch checklist on eval-shop.",
+      "connection": { "read_only": true },
+      "must_call": ["check_security", "list_backups"],
+      "must_not_call": ["apply_collections", "update_api_rules", "create_backup"],
+      "answer_must": ["gives the full report, since every check reads", "says how to apply a fix after reconnecting with read and write"]
+    },
+    {
+      "id": "env-off",
+      "prompt": "What did I forget before launching eval-shop?",
+      "connection": { "read_only": false, "features": "account,resources,deploy,domains,database,docs" },
+      "must_not_call": ["set_env_vars"],
+      "answer_must": ["lists the variables check as not checked because the env feature is off"]
+    }
+  ],
+  "boundaries": [
+    { "prompt": "Check the API rules of eval-shop for security holes", "expected_skill": "review-security", "should_not_trigger": "launch-checklist" },
+    { "prompt": "Creating orders in eval-shop fails with 400", "expected_skill": "investigate-errors", "should_not_trigger": "launch-checklist" }
+  ]
+}
