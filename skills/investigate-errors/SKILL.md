@@ -64,7 +64,9 @@ Say the cause in plain words, quoting at most three log entries, without tokens,
 - A rule: from `references/rules.md`, the condition that allows the intended case and nothing more; apply it with
   `update_api_rules` after the user approves that exact rule.
 - A field option or an index: hand off to `change-schema`.
-- A hook: the corrected file from the user, then `deploy_hooks` after approval; `search_docs` first.
+- A hook: the corrected file from the user, then `deploy_hooks` after approval; `search_docs` first. Each
+  `deploy_hooks` restarts the instance (a new container, seen in `get_logs`), so the app pauses for a moment: say so
+  when asking. It replaces files of the same name only; a backup does not hold `pb_hooks`.
 - The app's code (no token sent, a wrong field name in a filter): say what to change, with the SDK call.
 
 ### Step 5: Check
