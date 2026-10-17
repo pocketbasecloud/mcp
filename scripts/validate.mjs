@@ -177,6 +177,13 @@ export function validate(root) {
     }
     if (existsSync(join(root, "skills", dir.name, "evals.json"))) checkEvals(root, dir.name, errors);
   }
+  // Evals for skills not written yet, run without the plugin first to see whether one is needed.
+  const candidates = join(root, "evals/candidates");
+  if (existsSync(candidates)) {
+    for (const f of readdirSync(candidates).filter((n) => n.endsWith(".json"))) {
+      checkEvals(root, f.slice(0, -".json".length), errors, `evals/candidates/${f}`);
+    }
+  }
   return errors;
 }
 
@@ -187,8 +194,9 @@ export const ALL_WRITES = "@write";
  * A skill's evals.json. A headless turn can't approve anything, so each case's first turn forbids every write tool
  * (`@write`) and requires none; the apply path is its `approve` turn, the user's reply. Tools and skills must exist.
  */
-function checkEvals(root, skill, errors) {
-  const file = `skills/${skill}/evals.json`;
+function checkEvals(root, skill, errors, file = `skills/${skill}/evals.json`) {
+  // A candidate probes whether a skill is needed at all: the release rules on case counts don't apply to it.
+  const candidate = file.startsWith("evals/candidates/");
   let evals;
   try {
     evals = JSON.parse(readFileSync(join(root, file), "utf8"));
@@ -198,8 +206,8 @@ function checkEvals(root, skill, errors) {
   }
   if (evals.skill !== skill) errors.push(`${file}: skill "${evals.skill}" must be the folder's name, "${skill}".`);
   const cases = Array.isArray(evals.cases) ? evals.cases : [];
-  if (cases.length < 3) errors.push(`${file}: needs at least 3 cases, not ${cases.length}.`);
-  if (!cases.some((c) => c.connection?.read_only === true)) errors.push(`${file}: needs a read-only case.`);
+  if (!candidate && cases.length < 3) errors.push(`${file}: needs at least 3 cases, not ${cases.length}.`);
+  if (!candidate && !cases.some((c) => c.connection?.read_only === true)) errors.push(`${file}: needs a read-only case.`);
   const known = new Set([...READ_TOOLS, ...WRITE_TOOLS, ALL_WRITES]);
   const fixturePath = join(root, "evals/fixture.json");
   const fixtureFile = existsSync(fixturePath) ? JSON.parse(readFileSync(fixturePath, "utf8")) : {};

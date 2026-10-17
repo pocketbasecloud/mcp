@@ -1,0 +1,55 @@
+{
+  "skill": "import-data",
+  "cases": [
+    {
+      "id": "csv-with-a-bad-row",
+      "prompt": "Import these into {instance}'s eval_products:\nname,price\nLamp,1200\n,450\nDesk,8900\nChair,3500",
+      "connection": { "read_only": false },
+      "fixture": ["eval_products"],
+      "must_call": ["get_collection"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "says the row without a name cannot be imported, since name is required",
+        "shows the rows as they will be written, and asks for approval before writing"
+      ],
+      "approve": {
+        "reply": "Yes, import the good rows.",
+        "must_call": ["create_records"],
+        "must_call_before": [["create_records", "count_records"]],
+        "must_not_call": ["upsert_records", "truncate_collection", "delete_collection", "apply_collections"],
+        "answer_must": ["says how many rows were imported"]
+      }
+    },
+    {
+      "id": "orders-for-members",
+      "prompt": "Import these orders into {instance}'s eval_orders:\nmember,total\nmember1@eval.test,500\nmember2@eval.test,700",
+      "connection": { "read_only": false },
+      "fixture": ["eval_members", "eval_orders"],
+      "must_call": ["get_collection", "list_records"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "maps each email to that member's record id for the owner field",
+        "asks for approval before writing"
+      ],
+      "approve": {
+        "reply": "Yes, go ahead.",
+        "must_call": ["create_records"],
+        "must_call_matching": [["create_records", "owner"]],
+        "must_call_before": [["create_records", "count_records"]],
+        "must_not_call": ["upsert_records", "truncate_collection", "delete_collection", "apply_collections"]
+      }
+    },
+    {
+      "id": "read-only",
+      "prompt": "Import these into {instance}'s eval_products:\nname,price\nLamp,1200\nDesk,8900",
+      "connection": { "read_only": true },
+      "fixture": ["eval_products"],
+      "must_not_call": ["@write"],
+      "answer_must": ["shows the records it would create", "says how to connect with write access to import them"]
+    }
+  ],
+  "boundaries": [
+    { "prompt": "Import these products into {instance}: Lamp 1200, Desk 8900", "expected_skill": "import-data", "should_not_trigger": "design-collections" },
+    { "prompt": "Add a stock field to eval_products in {instance}", "expected_skill": "change-schema", "should_not_trigger": "import-data" }
+  ]
+}

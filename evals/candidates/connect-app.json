@@ -1,0 +1,18 @@
+{
+  "skill": "connect-app",
+  "risk": "A superuser token in client code; SDK calls from an old API.",
+  "cases": [
+    {
+      "id": "react-sign-in-and-list",
+      "prompt": "Show me the code for my React app to sign members in and list their eval_orders from {instance}.",
+      "connection": { "read_only": false },
+      "fixture": ["eval_members", "eval_orders"],
+      "must_call": ["get_resource", "search_docs"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "uses the PocketBase JS SDK with the instance's address",
+        "signs members in with authWithPassword on eval_members, with no superuser credentials in the client"
+      ]
+    }
+  ]
+}
