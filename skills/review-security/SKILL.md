@@ -1,6 +1,6 @@
 ---
 name: review-security
-description: "Review the API rules of a PocketBase instance on PocketBase Cloud and fix the risky ones with the user. Use when the user asks whether their PocketBase data is safe, wants a security review or audit, or asks who can read or change their records. Explains each finding in plain words, proposes the exact rule, and changes nothing without approval. Not for a full check before launch: use launch-checklist."
+description: "Review the API rules of a PocketBase instance on PocketBase Cloud and fix the risky ones with the user. Use when the user asks whether their PocketBase data is safe, wants a security review or audit, or asks who can read or change their records, such as whether anyone can see a collection without signing in. Explains each finding in plain words, proposes the exact rule, and changes nothing without approval. Not for a full check before launch: use launch-checklist."
 ---
 
 # Review the security of a PocketBase instance
