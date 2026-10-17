@@ -56,7 +56,7 @@ Show the preview and ask before changing anything.
 
 Once the user agrees:
 
-1. Call `create_backup` with `resource` (and a `name` such as `before-user-accounts`).
+1. Call `create_backup` with `resource` (and a `name` such as `before-user-accounts.zip`; it must end in `.zip`).
 2. Call `apply_collections` with `resource` and `collections`.
 
 `apply_collections` never deletes collections or fields, and refuses to change the type of an existing field.
@@ -75,7 +75,9 @@ file in their app, for the PocketBase JS SDK.
 ## Rules
 
 - Never apply collections or rules without the user's approval of the previewed change.
-- Always back up before `apply_collections`, and tell the user the backup's name.
+- Always back up before `apply_collections`, and tell the user the backup's name. It holds the data as it was:
+  `restore_backup` brings the records back, but not the collections as they were, since the instance replays
+  collection changes when it restarts.
 - If `apply_collections` is not available, the connection is read-only or has no database tools: give the user
   the collection JSON instead, to save as a file and import with `pbc admin collections import <file>` or the
   admin UI's collections import.
