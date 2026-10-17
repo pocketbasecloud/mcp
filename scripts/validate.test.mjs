@@ -64,3 +64,83 @@ test("a manifest path that points nowhere is caught", () => {
   });
   assert.match(validate(dir).join("\n"), /no-such-folder/);
 });
+
+test("an eval whose first turn needs a write tool is caught, since one headless turn can't approve", () => {
+  const dir = copy();
+  edit(dir, "skills/change-schema/evals.json", (e) => {
+    e.cases[0].must_call.push("apply_collections");
+  });
+  assert.match(validate(dir).join("\n"), /change-schema\/evals\.json.*apply_collections.*approve/);
+});
+
+test("a first turn that leaves write tools allowed is caught", () => {
+  const dir = copy();
+  edit(dir, "skills/investigate-errors/evals.json", (e) => {
+    e.cases[1].must_not_call = e.cases[1].must_not_call.filter((t) => t !== "@write");
+  });
+  assert.match(validate(dir).join("\n"), /investigate-errors\/evals\.json case "hook-throws".*@write/);
+});
+
+test("a read-only skill's eval with an approve turn is caught", () => {
+  const dir = copy();
+  edit(dir, "skills/launch-checklist/evals.json", (e) => {
+    e.cases[0].approve = { reply: "Yes, back it up.", must_call: ["create_backup"] };
+  });
+  assert.match(validate(dir).join("\n"), /launch-checklist\/evals\.json.*only reads/);
+});
+
+test("an approve turn without a reply is caught", () => {
+  const dir = copy();
+  edit(dir, "skills/change-schema/evals.json", (e) => {
+    delete e.cases.find((c) => c.approve).approve.reply;
+  });
+  assert.match(validate(dir).join("\n"), /change-schema\/evals\.json.*reply/);
+});
+
+test("a boundary naming a skill that does not exist is caught", () => {
+  const dir = copy();
+  edit(dir, "skills/change-schema/evals.json", (e) => {
+    e.boundaries[0].expected_skill = "design-collection";
+  });
+  assert.match(validate(dir).join("\n"), /change-schema\/evals\.json.*design-collection\b/);
+});
+
+test("an eval naming a tool the server does not have is caught", () => {
+  const dir = copy();
+  edit(dir, "skills/investigate-errors/evals.json", (e) => {
+    e.cases[0].must_call.push("get_request_log");
+  });
+  assert.match(validate(dir).join("\n"), /investigate-errors\/evals\.json.*get_request_log/);
+});
+
+test("an evals.json for another skill is caught", () => {
+  const dir = copy();
+  edit(dir, "skills/design-collections/evals.json", (e) => {
+    e.skill = "change-schema";
+  });
+  assert.match(validate(dir).join("\n"), /design-collections\/evals\.json.*skill/);
+});
+
+test("an eval prompt that does not name {instance} is caught, since the runner fills in its instance", () => {
+  const dir = copy();
+  edit(dir, "skills/change-schema/evals.json", (e) => {
+    e.cases[0].prompt = "In eval-shop, rename title to name in eval_posts.";
+  });
+  assert.match(validate(dir).join("\n"), /change-schema\/evals\.json case "rename-keeps-data".*\{instance\}/);
+});
+
+test("a case naming a fixture evals/fixture.json lacks is caught", () => {
+  const dir = copy();
+  edit(dir, "skills/change-schema/evals.json", (e) => {
+    e.cases[0].fixture = ["eval_pots"];
+  });
+  assert.match(validate(dir).join("\n"), /change-schema\/evals\.json case "rename-keeps-data".*eval_pots/);
+});
+
+test("a first turn that must call a write tool with given arguments is caught too", () => {
+  const dir = copy();
+  edit(dir, "skills/investigate-errors/evals.json", (e) => {
+    e.cases[0].must_call_matching = [["update_api_rules", "listRule"]];
+  });
+  assert.match(validate(dir).join("\n"), /investigate-errors\/evals\.json case "empty-list-signed-in".*update_api_rules.*approve/);
+});

@@ -1,0 +1,54 @@
+{
+  "skill": "design-collections",
+  "cases": [
+    {
+      "id": "recipes-app",
+      "prompt": "In {instance}, I'm building a recipe app: recipes anyone can read and only their author edits, their ingredients, and ratings and favorites each user keeps to themselves.",
+      "connection": { "read_only": false },
+      "must_call": ["list_collections", "get_collection", "preview_collections"],
+      "must_call_matching": [["preview_collections", "_pb_users_auth_"]],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "relates ratings and favorites to users and recipes",
+        "proposes a unique index on (user, recipe) for favorites",
+        "guards the author and the user fields so nobody acts as someone else",
+        "asks for approval of the previewed change before applying"
+      ],
+      "approve": {
+        "reply": "Yes, go ahead.",
+        "must_call_before": [["create_backup", "apply_collections"], ["apply_collections", "check_security"]],
+        "must_not_call": ["delete_collection", "remove_fields", "truncate_collection", "upsert_records", "create_records"],
+        "answer_must": ["names the backup", "goes through each critical and warning finding of check_security"]
+      }
+    },
+    {
+      "id": "blog-on-a-shop",
+      "prompt": "Add a blog to {instance}.",
+      "connection": { "read_only": false },
+      "fixture": ["eval_products"],
+      "must_call": ["list_collections"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "keeps the existing collections' fields and records, naming any addition to them (such as a role on users)",
+        "limits public reads to published posts",
+        "guards the author so nobody posts as someone else",
+        "asks for approval before applying"
+      ]
+    },
+    {
+      "id": "read-only",
+      "prompt": "In {instance}, design collections for a booking app: services and bookings.",
+      "connection": { "read_only": true },
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "gives the collection JSON",
+        "gives a pb_migrations file or says preview_collections with migration: true makes one",
+        "says how to reconnect with read and write to apply it"
+      ]
+    }
+  ],
+  "boundaries": [
+    { "prompt": "Make eval_products.price a number in {instance}", "expected_skill": "change-schema", "should_not_trigger": "design-collections" },
+    { "prompt": "Users should only see their own notes in {instance}", "expected_skill": "setup-user-accounts", "should_not_trigger": "design-collections" }
+  ]
+}

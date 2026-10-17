@@ -60,7 +60,8 @@ Give the user the instance's address from `domain` (`https://<domain>`) and its 
 
 ### Step 6: Suggest the next step
 
-- User accounts and owned data: the **setup-user-accounts** skill.
+- The app's collections, fields and rules: the **design-collections** skill (the default next step).
+- User accounts and owned data only: the **setup-user-accounts** skill.
 - Code for their app: `search_docs` for the PocketBase JS SDK, auth, realtime or files.
 - Deploying a frontend or backend: `get_deploy_command`, which returns the `pbc` command to run on their machine.
 
@@ -69,9 +70,11 @@ Give the user the instance's address from `domain` (`https://<domain>`) and its 
 ## Rules
 
 - Never create a project or an instance without the user's agreement on its name.
-- If `create_project` or `create_pocketbase` is not available, the connection is read-only: say so, and tell the
-  user to reconnect with read and write access.
+- If `create_project` or `create_pocketbase` is not available, the connection is read-only: say so, and tell the user
+  to connect again with write access: "Read and write" on PocketBase Cloud's sign-in page, or no `read_only=true` in
+  the server URL.
 - Do not guess region codes or compute ids; use what `list_regions` returns.
+- No tool lists what a plan includes: give `plansUrl` from `get_plan` rather than saying it.
 
 ## Example
 

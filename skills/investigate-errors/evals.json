@@ -1,0 +1,60 @@
+{
+  "skill": "investigate-errors",
+  "cases": [
+    {
+      "id": "empty-list-signed-in",
+      "prompt": "In {instance}, users say the list of eval_orders in our app comes back empty for them, but there are orders in the dashboard.",
+      "connection": { "read_only": false },
+      "fixture": ["eval_members", "eval_orders", "member2_lists_orders"],
+      "must_call": ["diagnose_resource", "get_request_logs"],
+      "must_call_matching": [["get_request_logs", "_superusers"]],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "says the list requests ran signed in, and names the listRule owner = @request.auth.id as what leaves them empty",
+        "does not propose opening the list to everyone"
+      ]
+    },
+    {
+      "id": "hook-throws",
+      "prompt": "After my last hooks deploy, creating a comment in {instance}'s eval_comments fails with 'Something went wrong while processing your request.'",
+      "connection": { "read_only": false },
+      "fixture": ["eval_comments", "eval_comments_throws", "visitor_comments"],
+      "must_call": ["get_request_logs", "list_hooks"],
+      "must_call_matching": [["get_request_logs", "level >= 8"]],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "quotes the error the hook threw",
+        "asks for the hook file or explains the fix before deploying it"
+      ]
+    },
+    {
+      "id": "forbidden-update",
+      "prompt": "In {instance}, a signed-in member editing a product in eval_products gets 403 'Only superusers can perform this action.'",
+      "connection": { "read_only": false },
+      "fixture": ["eval_members", "eval_products", "member_edits_product"],
+      "must_call": ["get_collection"],
+      "must_not_call": ["@write"],
+      "answer_must": ["says the updateRule is null", "proposes a rule limited to staff or owners and asks for approval"],
+      "approve": {
+        "reply": "Yes, apply that rule.",
+        "must_call": ["update_api_rules"],
+        "must_not_call": ["apply_collections", "delete_collection"],
+        "answer_must": ["asks the user to retry and says how the request log will show it worked"]
+      }
+    },
+    {
+      "id": "read-only",
+      "prompt": "In {instance}, opening a ticket in eval_tickets fails with 'Failed to create record.'",
+      "connection": { "read_only": true },
+      "fixture": ["eval_tickets", "visitor_ticket_without_subject"],
+      "must_not_call": ["@write"],
+      "answer_must": ["names the missing subject, from the request log's details", "says the app must send a subject, or that making it optional is the user's choice"]
+    }
+  ],
+  "boundaries": [
+    { "prompt": "My last deploy of {instance} failed", "expected_skill": "debug-deploy", "should_not_trigger": "investigate-errors" },
+    { "prompt": "Why does my app get 403 when users edit their profile in {instance}?", "expected_skill": "investigate-errors", "should_not_trigger": "debug-deploy" },
+    { "prompt": "Can anyone read the orders in {instance} without signing in?", "expected_skill": "review-security", "should_not_trigger": "investigate-errors" },
+    { "prompt": "Editing a product in {instance} returns 403", "expected_skill": "investigate-errors", "should_not_trigger": "review-security" }
+  ]
+}

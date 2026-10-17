@@ -1,0 +1,70 @@
+{
+  "skill": "change-schema",
+  "cases": [
+    {
+      "id": "rename-keeps-data",
+      "prompt": "In {instance}, rename title to name in eval_posts.",
+      "connection": { "read_only": false },
+      "fixture": ["eval_posts"],
+      "must_call": ["get_collection", "preview_collections"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "sends the field with its id under the new name, so the data stays",
+        "rewrites the rules and indexes that name title in the same request",
+        "says which app code and hooks must change",
+        "asks for approval before applying"
+      ],
+      "approve": {
+        "reply": "Yes, go ahead.",
+        "must_call_before": [["create_backup", "apply_collections"], ["apply_collections", "count_records"]],
+        "must_not_call": ["remove_fields", "delete_collection", "truncate_collection"],
+        "answer_must": ["names the backup", "says the records kept their values after the rename"]
+      }
+    },
+    {
+      "id": "text-to-number",
+      "prompt": "In {instance}, make eval_products.price a number; it is text now.",
+      "connection": { "read_only": false },
+      "fixture": ["eval_products"],
+      "must_call": ["get_collection", "count_records", "preview_collections"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "never sends price with the number type in place of the text one",
+        "plans the steps in order: add a new field, copy the values, prove the copy with counts, remove the old field, rename the new one",
+        "shows the preview of adding the new field and asks to apply it",
+        "says removing the old field needs its own approval, and that a backup cannot bring the field back"
+      ],
+      "approve": {
+        "reply": "Yes, add the new field.",
+        "must_call_before": [["create_backup", "apply_collections"]],
+        "must_not_call": ["upsert_records", "update_record", "remove_fields", "delete_collection"],
+        "answer_must": ["shows how the values convert, and the ones that do not, and asks before copying them"]
+      }
+    },
+    {
+      "id": "unique-slug",
+      "prompt": "In {instance}, make eval_posts.slug unique.",
+      "connection": { "read_only": false },
+      "fixture": ["eval_posts"],
+      "must_call": ["get_collection", "list_records"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "looks for duplicate slugs before adding the index",
+        "keeps the existing indexes in the list",
+        "plans the unique index as a change of its own, after the duplicates are settled and the user approves"
+      ]
+    },
+    {
+      "id": "read-only",
+      "prompt": "In {instance}, make eval_products.price a number.",
+      "connection": { "read_only": true },
+      "fixture": ["eval_products"],
+      "must_not_call": ["@write"],
+      "answer_must": ["gives the plan and the collection definition, as JSON or inside a migration file", "gives a pb_migrations file or says how to get one", "says how to reconnect with read and write"]
+    }
+  ],
+  "boundaries": [
+    { "prompt": "Design collections for a booking app in {instance}", "expected_skill": "design-collections", "should_not_trigger": "change-schema" },
+    { "prompt": "Rename title to name in {instance}'s eval_posts", "expected_skill": "change-schema", "should_not_trigger": "design-collections" }
+  ]
+}

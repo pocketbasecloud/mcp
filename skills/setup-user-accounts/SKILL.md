@@ -1,12 +1,12 @@
 ---
 name: setup-user-accounts
-description: "Design user accounts and per-user data in a PocketBase instance on PocketBase Cloud: the users auth collection, collections each user owns, and API rules so users only see and change their own records. Use when the user wants sign-up and login, wants each user to have their own data (posts, notes, orders), or asks how to structure collections and rules for an app. Previews the change, backs up, and applies it only after approval."
+description: "Design user accounts and per-user data in a PocketBase instance on PocketBase Cloud: the users auth collection, collections each user owns, and API rules so users only see and change their own records. Use when the user wants sign-up and login, or wants each user to have their own data (posts, notes, orders). Previews the change, backs up, and applies it only after approval. Not for designing a whole app's data model: use design-collections."
 ---
 
 # Set up user accounts
 
 ## Keywords
-user accounts, sign up, login, authentication, auth collection, users collection, own data, owner, per-user data, multi-user, collections design, schema, data model, api rules for users
+user accounts, sign up, login, authentication, auth collection, users collection, own data, owner, per-user data, multi-user, only see their own, api rules for users
 
 ## Overview
 
@@ -21,8 +21,10 @@ own records, then applies it safely: preview, backup, apply, security check, Typ
 
 ### Step 1: Read what exists
 
-Call `list_collections` with `resource`, then `get_collection` for the collections that matter (always `users` if
-it exists). Keep what is there: collections and fields not in the plan are left alone.
+Call `list_collections` with `resource`, then `get_collection` for the collections that matter (always `users` if it
+exists). Keep what is there: collections and fields not in the plan are left alone. Check that `apply_collections` is
+among your tools (a client may list it only by name, as a deferred tool): without it the connection is read-only. Say
+so at once, and plan to hand over what the Rules list instead of asking to apply.
 
 ### Step 2: Propose the plan
 
@@ -57,7 +59,9 @@ Show the preview and ask before changing anything.
 Once the user agrees:
 
 1. Call `create_backup` with `resource` (and a `name` such as `before-user-accounts.zip`; it must end in `.zip`).
-2. Call `apply_collections` with `resource` and `collections`.
+2. If the app keeps `pb_migrations/` in git: the user commits and deploys the migration file, once the preview's
+   `blocked` is empty (the file runs without pbc-mcp's checks); apply live too only if they agree. Otherwise call
+   `apply_collections` with `resource` and `collections`.
 
 `apply_collections` never deletes collections or fields, and refuses to change the type of an existing field.
 
@@ -70,6 +74,11 @@ Run `check_security` and fix any `critical` or `warning` finding with the **revi
 Call `generate_types` with `resource` (and `collections` to limit it). Tell the user to save the result as a `.ts`
 file in their app, for the PocketBase JS SDK.
 
+### Last step: Next
+
+`design-collections` for the rest of the app's collections; `search_docs` for the SDK's sign-up, sign-in and
+OAuth2 code.
+
 ---
 
 ## Rules
@@ -78,6 +87,8 @@ file in their app, for the PocketBase JS SDK.
 - Always back up before `apply_collections`, and tell the user the backup's name. It holds the data as it was:
   `restore_backup` brings the records back, but not the collections as they were, since the instance replays
   collection changes when it restarts.
-- If `apply_collections` is not available, the connection is read-only or has no database tools: give the user
-  the collection JSON instead, to save as a file and import with `pbc admin collections import <file>` or the
-  admin UI's collections import.
+- If `apply_collections` is not available, the connection is read-only or has no database tools: give the user the
+  collection JSON and the `pb_migrations/` file from `preview_collections` with `migration: true`, or the JSON to
+  import with `pbc admin collections import <file>` or the admin UI's collections import. To apply it here, the user
+  connects again with write access: "Read and write" on PocketBase Cloud's sign-in page, or no `read_only=true` in
+  the server URL.

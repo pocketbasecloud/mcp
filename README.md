@@ -284,6 +284,10 @@ This forwards your token to PocketBase Cloud as is (token passthrough); interact
 | [`debug-deploy`](skills/debug-deploy/SKILL.md) | Why a deploy failed, and the command to deploy again. |
 | [`review-security`](skills/review-security/SKILL.md) | API rules that are too open, fixed with your approval. |
 | [`setup-user-accounts`](skills/setup-user-accounts/SKILL.md) | Users, per-user collections and safe rules. |
+| [`design-collections`](skills/design-collections/SKILL.md) | An app's collections, relations, indexes and rules. |
+| [`change-schema`](skills/change-schema/SKILL.md) | Changing fields that already hold data, without losing records. |
+| [`investigate-errors`](skills/investigate-errors/SKILL.md) | Why the app gets errors or empty lists, and the fix. |
+| [`launch-checklist`](skills/launch-checklist/SKILL.md) | A read-only, scored check before going live. |
 
 With a plain MCP setup (no plugin), copy a skill's folder into your client's skills directory, or ask your
 assistant to read the `SKILL.md`.

@@ -1,12 +1,12 @@
 ---
 name: review-security
-description: "Review the API rules of a PocketBase instance on PocketBase Cloud and fix the risky ones with the user. Use when the user asks whether their PocketBase data is safe, wants a security review or audit, asks who can read or change their records, or before launching an app. Explains each finding in plain words, proposes the exact rule, and changes nothing without approval."
+description: "Review the API rules of a PocketBase instance on PocketBase Cloud and fix the risky ones with the user. Use when the user asks whether their PocketBase data is safe, wants a security review or audit, or asks who can read or change their records, such as whether anyone can see a collection without signing in. Explains each finding in plain words, proposes the exact rule, and changes nothing without approval. Not for a full check before launch: use launch-checklist."
 ---
 
 # Review the security of a PocketBase instance
 
 ## Keywords
-security review, audit, api rules, who can read, who can delete, public collection, is my data safe, lock down, permissions, access rules, before launch, harden
+security review, audit, api rules, who can read, who can delete, public collection, is my data safe, lock down, permissions, access rules, harden
 
 ## Overview
 
@@ -53,6 +53,11 @@ Ask before changing anything. Once the user agrees, call `update_api_rules` with
 ### Step 5: Check again
 
 Run `check_security` again and show what is left.
+
+### Last step: Next
+
+`setup-user-accounts` when a rule needs an owner field the collection lacks; `launch-checklist` when the app is
+about to go live.
 
 ---
 
