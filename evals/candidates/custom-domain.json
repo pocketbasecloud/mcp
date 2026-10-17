@@ -1,0 +1,13 @@
+{
+  "skill": "custom-domain",
+  "risk": "Not saying the DNS records come from add_domain and that verification follows.",
+  "cases": [
+    {
+      "id": "how-to-add",
+      "prompt": "How do I make {instance} answer on api.example.com?",
+      "connection": { "read_only": true },
+      "must_not_call": ["@write"],
+      "answer_must": ["explains add_domain, then the DNS records it returns, then verify_domain", "says it cannot add the domain on a read-only connection"]
+    }
+  ]
+}

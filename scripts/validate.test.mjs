@@ -144,3 +144,19 @@ test("a first turn that must call a write tool with given arguments is caught to
   });
   assert.match(validate(dir).join("\n"), /investigate-errors\/evals\.json case "empty-list-signed-in".*update_api_rules.*approve/);
 });
+
+test("a candidate eval is held to the same rules as a skill's", () => {
+  const dir = copy();
+  edit(dir, "evals/candidates/import-data.json", (e) => {
+    e.cases[0].must_call.push("create_records");
+  });
+  assert.match(validate(dir).join("\n"), /evals\/candidates\/import-data\.json case "csv-with-a-bad-row".*create_records.*approve/);
+});
+
+test("a candidate eval named after another file is caught", () => {
+  const dir = copy();
+  edit(dir, "evals/candidates/manage-env.json", (e) => {
+    e.skill = "manage-envs";
+  });
+  assert.match(validate(dir).join("\n"), /evals\/candidates\/manage-env\.json.*manage-envs/);
+});

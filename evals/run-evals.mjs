@@ -3,7 +3,7 @@
 //
 //   PBC_TOKEN=<cli token> node evals/run-evals.mjs --instance <id> --project <id> [--skill change-schema]
 //     [--case rename-keeps-data] [--runs 3] [--branches with,without] [--no-boundaries] [--model opus]
-//     [--allow deploy_public]
+//     [--allow deploy_public] [--candidates]
 //
 // The instance is reset before every case: each collection it did not have when the run began is deleted, then the
 // case's fixture (evals/fixture.json) is created. Backups and hook files made during a case are removed after it. The
@@ -32,6 +32,7 @@ const { values: opt } = parseArgs({
     "judge-model": { type: "string", default: "sonnet" },
     server: { type: "string", default: "https://mcp.pocketbasecloud.com/mcp" },
     allow: { type: "string", multiple: true },
+    candidates: { type: "boolean", default: false },
   },
 });
 const TOKEN = process.env.PBC_TOKEN;
@@ -315,10 +316,17 @@ function forget(cwd) {
 // ---- the cases ----
 
 const instancePrompt = (p) => p.replaceAll("{instance}", target.name);
-const skills = readdirSync(join(ROOT, "skills"), { withFileTypes: true })
-  .filter((d) => d.isDirectory() && existsSync(join(ROOT, "skills", d.name, "evals.json")))
-  .map((d) => d.name)
-  .filter((s) => !opt.skill || opt.skill.includes(s));
+// --candidates runs evals/candidates/*.json: cases for skills not written yet, to see whether one is needed. Their
+// "with" branch is the plugin as it is, which shows whether an existing skill already covers the case.
+const evalFile = (s) =>
+  opt.candidates ? join(ROOT, "evals/candidates", `${s}.json`) : join(ROOT, "skills", s, "evals.json");
+const skills = (
+  opt.candidates
+    ? readdirSync(join(ROOT, "evals/candidates")).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, -5))
+    : readdirSync(join(ROOT, "skills"), { withFileTypes: true })
+        .filter((d) => d.isDirectory() && existsSync(join(ROOT, "skills", d.name, "evals.json")))
+        .map((d) => d.name)
+).filter((s) => !opt.skill || opt.skill.includes(s));
 const stamp = new Date().toISOString().replace(/[:.]/g, "-");
 const resultsDir = join(ROOT, "evals/results");
 mkdirSync(resultsDir, { recursive: true });
@@ -335,7 +343,7 @@ function record(row, checks, cost) {
 }
 
 for (const skill of skills) {
-  const evals = JSON.parse(readFileSync(join(ROOT, "skills", skill, "evals.json"), "utf8"));
+  const evals = JSON.parse(readFileSync(evalFile(skill), "utf8"));
   for (const c of evals.cases.filter((x) => !opt.case || opt.case.includes(x.id))) {
     for (const branch of BRANCHES) {
       for (let n = 1; n <= RUNS; n++) {
@@ -350,7 +358,7 @@ for (const skill of skills) {
         }
         for (const [t, result, spec] of turns) {
           const checks = [{ check: "turn", item: "finished", pass: result.ok, detail: result.ok ? "" : "error or timeout" }];
-          if (t === "1" && branch === "with") {
+          if (t === "1" && branch === "with" && !opt.candidates) {
             checks.push({ check: "skill", item: skill, pass: result.skills[0] === `pocketbase-cloud:${skill}`, detail: result.skills[0] ?? "none" });
           }
           checks.push(...scoreTurn(result.calls, spec, { id: R, name: target.name }));
@@ -367,7 +375,7 @@ for (const skill of skills) {
       }
     }
   }
-  if (opt["no-boundaries"] || !BRANCHES.includes("with")) continue;
+  if (opt["no-boundaries"] || opt.candidates || !BRANCHES.includes("with")) continue;
   for (const b of evals.boundaries ?? []) {
     for (let n = 1; n <= RUNS; n++) {
       const cwd = mkdtempSync(join(tmpdir(), "pbc-eval-"));

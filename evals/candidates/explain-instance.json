@@ -1,0 +1,18 @@
+{
+  "skill": "explain-instance",
+  "risk": "Missing what the rules allow, or the hooks; printing personal data.",
+  "cases": [
+    {
+      "id": "inherited-instance",
+      "prompt": "I inherited {instance}. Explain how it works: what data it holds, who can do what, and any server code.",
+      "connection": { "read_only": true },
+      "fixture": ["eval_members", "eval_orders", "eval_products", "eval_comments", "eval_comments_throws"],
+      "must_call": ["list_collections", "get_collection", "list_hooks"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "says who can list, view, create, update and delete in each eval_ collection",
+        "mentions the hook on eval_comments"
+      ]
+    }
+  ]
+}
