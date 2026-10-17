@@ -12,14 +12,16 @@ counted before and after.
 | A field with its `id` under a new name | Renamed; the data stays |
 | A field under a new name **without** its `id` | A new, empty field; the old one and its data stay (fields not listed are kept) |
 | A rename, while a rule still names the old field | Refused ("Invalid rule… unknown field"); nothing changes |
-| A rename, while an index still names the old field | Refused ("Failed to import collections"), **and the collection breaks** (below) |
+| A rename, while an index still names the old field | Refused by pbc-mcp before PocketBase sees it ("rewrite the index in the same request"); the preview shows it under `blocked` |
 | A field's type changed | Refused by pbc-mcp before PocketBase sees it |
-| A `UNIQUE` index over duplicate values | Refused ("Failed to import collections"), **and the collection breaks** (below) |
+| A `UNIQUE` index over duplicate values | The preview warns; PocketBase refuses it ("UNIQUE constraint failed"), and **the refused change stays in the running instance** (below) |
 
-**The collection breaks** when PocketBase cannot build an index: the database rolls back, but the running instance
-keeps the refused definition in memory. `get_collection` then shows the refused fields and indexes, listing still
-works, and **creating records fails** until the instance restarts. A restart brings the stored definition back,
-with the data intact. A refused rule does not do this.
+**When PocketBase cannot build an index**, the database rolls back, but the running instance keeps the refused
+definition until it restarts, and `get_collection` shows it. If the request changed only indexes, records still
+save, and the next request that leaves the refused index out applies normally. If it also added or renamed fields,
+updating records and changing the collection again fail until a restart (creating records can fail too); a restart
+brings the stored definition back with the data intact. Checked on PocketBase 0.40.5, through pbc-mcp and with
+PocketBase's own import. A refused rule does none of this.
 
 ## Rename `title` to `name` in `posts`
 
@@ -82,4 +84,4 @@ quiet window.
       "indexes": ["CREATE INDEX `idx_posts_name` ON `posts` (`name`)", "CREATE UNIQUE INDEX `idx_posts_slug` ON `posts` (`slug`)"] }]
    ```
 
-3. If it is refused anyway, the collection is broken until a restart: see the skill's step 5.
+3. If it is refused anyway, read the error and see the skill's step 5: alone, the index leaves records saving.

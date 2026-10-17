@@ -29,11 +29,11 @@ collections per call.
 
 ## When apply_collections is refused
 
-A refused rule or field changes nothing. A refused **index** (PocketBase cannot build it: a `UNIQUE` over duplicate
-values, a column renamed away) leaves the running instance holding the refused definition in memory: creating
-records in that collection fails until it restarts (checked on PocketBase 0.40.5; a restart restores the stored
-definition, data intact). After a refusal, `get_collection`; if it shows the refused change, tell the user and see
-the `change-schema` skill's step 5.
+A refused rule or field changes nothing, and pbc-mcp refuses an index naming a field the collection would not have
+before PocketBase sees it. When PocketBase itself cannot build an index (a `UNIQUE` over duplicate values), the
+database is unchanged but the running instance keeps the refused change until it restarts: alone, records still
+save; with added or renamed fields, updating records and further changes fail until a restart (checked on PocketBase
+0.40.5). The error says which; see the `change-schema` skill's step 5.
 
 ## A full example
 

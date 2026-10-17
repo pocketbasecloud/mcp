@@ -11,8 +11,8 @@ rename field, rename column, change type, make required, make unique, unique ind
 ## Overview
 
 Changes collections that already hold records. Each kind of change has one safe path, and some refusals are not
-harmless: an index PocketBase cannot build leaves the collection unable to create records until the instance
-restarts. `references/rename-and-retype.md` holds the worked JSON and what each path was checked against.
+harmless: when PocketBase cannot build an index, the running instance keeps the refused change until it restarts.
+`references/rename-and-retype.md` holds the worked JSON and what each path was checked against.
 
 **Use this skill when** the collection the user wants to change already has records.
 
@@ -36,9 +36,9 @@ Each kind has its own path; never mix a risky one with other changes in the same
 |---|---|
 | Add an optional field, an index, change rules | One `apply_collections`. Send the existing indexes too: a listed `indexes` replaces them. |
 | Add a required field, or make one required | Add it optional, fill it (`upsert_records`), check `count_records` finds no empty one, then make it required. Required straight away is accepted, but then every edit of an old record without it fails. |
-| Rename a field | One `apply_collections` sending the field **with its `id`** under the new name, **and every rule and index that names it, rewritten**. Without the id the data stays in the old field; a rule left on the old name is refused; an index left on it breaks the collection (step 5). Then the hooks and the app code. |
+| Rename a field | One `apply_collections` sending the field **with its `id`** under the new name, **and every rule and index that names it, rewritten**. Without the id the data stays in the old field. A rule or index left on the old name is refused before anything changes; the preview shows it under `blocked`. Then the hooks and the app code. |
 | Change a field's type | Refused. Expand and contract: add a new field, copy the values, prove the copy, remove the old field, rename the new one by its id (step 3). |
-| Add a `UNIQUE` index | Find duplicates first (step 3). Then the index alone in its own `apply_collections`. |
+| Add a `UNIQUE` index | Find duplicates first (step 3); the preview warns about it too. Then the index alone in its own `apply_collections`. |
 | Make a relation required | `count_records` with `filter` `<field> = ''` first; fill or remove those records. |
 | Remove a field or a collection | Check that no rule, index, relation or hook uses it. `remove_fields` / `delete_collection` (opt-in `database_admin`), each after its own approval. |
 
@@ -58,12 +58,13 @@ deploy it; apply live too only if they agree. Otherwise: `preview_collections`, 
 a default, get approval of that change, `create_backup` (`before-<change>.zip`), then `apply_collections`.
 
 ### Step 5: If apply_collections is refused
-A refused rule or field changes nothing. A refused **index** (one PocketBase cannot build: duplicates under a
-`UNIQUE`, a column renamed away) can: call `get_collection`. If it shows the refused change, PocketBase is holding
-it in memory and **creating records in that collection fails until the instance restarts** (checked on PocketBase
-0.40.5; a restart brings the stored definition back with the data intact). Tell the user at once. The platform
-restarts an instance when a runtime setting changes: `update_pocketbase_config` with `queryTimeout` one second
-more, then `get_collection` again.
+Read the error: it says what the refusal left behind. A refused rule or field changes nothing. When PocketBase
+cannot build an **index** (duplicates under a `UNIQUE`), the database is unchanged but the running instance keeps the
+refused change until it restarts, and `get_collection` shows it (checked on PocketBase 0.40.5):
+- **The index alone:** records still save. Leave that index out of the next request, which then applies normally.
+- **With added or renamed fields:** updating records and changing the collection again fail until the instance
+  restarts. Tell the user at once and restart it: the platform restarts an instance when a runtime setting changes
+  (`update_pocketbase_config`, e.g. `queryTimeout` one second more). Then `get_collection` again.
 
 ### Step 6: Check
 `count_records` with the groups of step 3. `check_security` if rules changed; `check_performance` if indexes did.
