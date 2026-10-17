@@ -53,7 +53,9 @@ settings. The first gap found, full collection definitions from `get_collection`
 PocketBase + htmx templates. The two proposals merge with this one as the frame: skills live in this repository,
 with evals, and ship as 1.2.0. PR #2's pieces enter in this order: B4 (rewrite the server's `INSTRUCTIONS`) →
 `search_docs` v2 (BM25 ranking) → its templates as input data for `design-collections` → its `install_template`
-tool last, after a safe key-entry page and a safe file-write procedure exist. Dropped: PR #2's new public
+tool last, after a safe key-entry page and a safe file-write procedure exist. The templates live in a repository of
+their own, `pocketbasecloud/templates` (decided 2026-10-17), read here at a pinned tag; this repository keeps the
+skills and manifests. Dropped: PR #2's new public
 `agent-kit` repository (skills stay here) and its "≤ 40 tools by default" budget.
 
 ## Principles every skill keeps
