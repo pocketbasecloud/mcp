@@ -1,6 +1,7 @@
 # Template data models
 
-Generated from pocketbasecloud/templates at 7af8367 by `npm run references`; do not edit by hand.
+Generated from PocketBase Cloud's templates repository (commit 6173574), with its `npm run references`:
+change the models there and generate this file again, rather than editing it.
 Every rule and unique index below is covered by a check that ran on PocketBase 0.40.5: each
 template was imported into a fresh instance and its checks run as a visitor, two members and an admin.
 Use them as worked examples of fields, relations, rules and indexes, not as a schema to import whole.

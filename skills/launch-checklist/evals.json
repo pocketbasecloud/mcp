@@ -6,11 +6,12 @@
       "prompt": "I'm launching the eval-shop app next week. Is it ready?",
       "connection": { "read_only": false },
       "must_call": ["get_plan", "check_security", "check_performance", "list_backups", "get_resource", "diagnose_resource"],
-      "must_not_call": ["apply_collections", "update_api_rules", "create_backup", "set_continuous_backup", "update_pocketbase_config", "set_env_vars"],
+      "must_not_call": ["create_project", "create_pocketbase", "update_pocketbase_config", "set_continuous_backup", "deploy_hooks", "deploy_public", "add_domain", "verify_domain", "remove_domain", "set_env_vars", "delete_env_vars", "apply_collections", "update_api_rules", "create_record", "create_records", "upsert_records", "update_record", "delete_record", "create_backup", "run_cron", "truncate_collection", "delete_collection", "remove_fields", "restore_backup", "delete_backup"],
       "answer_must": [
-        "prints a score computed as 100 minus 15 per fail, 5 per warn and 1 per info",
+        "prints a score computed as 100 minus 15 per failed check and 5 per warned check, one status per check",
         "cites a tool for every pass, warn and fail",
-        "lists dev mode, SMTP and the superuser password under not checked or as questions"
+        "reports dev mode from get_resource",
+        "lists SMTP and the superuser password under not checked or as questions"
       ]
     },
     {
@@ -18,19 +19,25 @@
       "prompt": "Run the launch checklist on eval-shop.",
       "connection": { "read_only": true },
       "must_call": ["check_security", "list_backups"],
-      "must_not_call": ["apply_collections", "update_api_rules", "create_backup"],
+      "must_not_call": ["create_project", "create_pocketbase", "update_pocketbase_config", "set_continuous_backup", "deploy_hooks", "deploy_public", "add_domain", "verify_domain", "remove_domain", "set_env_vars", "delete_env_vars", "apply_collections", "update_api_rules", "create_record", "create_records", "upsert_records", "update_record", "delete_record", "create_backup", "run_cron", "truncate_collection", "delete_collection", "remove_fields", "restore_backup", "delete_backup"],
       "answer_must": ["gives the full report, since every check reads", "says how to apply a fix after reconnecting with read and write"]
     },
     {
-      "id": "env-off",
+      "id": "what-did-i-forget",
       "prompt": "What did I forget before launching eval-shop?",
-      "connection": { "read_only": false, "features": "account,resources,deploy,domains,database,docs" },
-      "must_not_call": ["set_env_vars"],
-      "answer_must": ["lists the variables check as not checked because the env feature is off"]
+      "connection": { "read_only": false },
+      "must_call": ["check_security", "get_resource"],
+      "must_not_call": ["create_project", "create_pocketbase", "update_pocketbase_config", "set_continuous_backup", "deploy_hooks", "deploy_public", "add_domain", "verify_domain", "remove_domain", "set_env_vars", "delete_env_vars", "apply_collections", "update_api_rules", "create_record", "create_records", "upsert_records", "update_record", "delete_record", "create_backup", "run_cron", "truncate_collection", "delete_collection", "remove_fields", "restore_backup", "delete_backup"],
+      "answer_must": [
+        "lists the variables check as not checked, since list_env_vars is not on this connection",
+        "says what no tool could read instead of assuming it"
+      ]
     }
   ],
   "boundaries": [
     { "prompt": "Check the API rules of eval-shop for security holes", "expected_skill": "review-security", "should_not_trigger": "launch-checklist" },
-    { "prompt": "Creating orders in eval-shop fails with 400", "expected_skill": "investigate-errors", "should_not_trigger": "launch-checklist" }
+    { "prompt": "Is eval-shop ready to launch?", "expected_skill": "launch-checklist", "should_not_trigger": "review-security" },
+    { "prompt": "Creating orders in eval-shop fails with 400", "expected_skill": "investigate-errors", "should_not_trigger": "launch-checklist" },
+    { "prompt": "My last deploy of eval-shop failed", "expected_skill": "debug-deploy", "should_not_trigger": "launch-checklist" }
   ]
 }

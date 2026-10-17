@@ -18,11 +18,12 @@ Entries are written a few seconds after the request.
 | 200 with no items, signed in | status 200, `auth` "users" | The `listRule` filters the records out | `get_collection`: the rule; `count_records` (the superuser sees all) |
 | 401 "The request requires valid record authorization token." | status 401 | An endpoint that needs a signed-in user (`auth-refresh`) | The client's sign-in |
 
-Filters for `get_request_logs`:
+Filters for `get_request_logs`. The tools call the instance as a superuser, so their own requests land in the same
+log with `auth` "_superusers"; `data.auth != '_superusers'` leaves them out (checked on PocketBase 0.40.5).
 
 | To see | Filter |
 |---|---|
-| Every failed request, including those a hook threw | `level >= 8` |
-| Failures on one collection | `level >= 8 && data.url ~ '/api/collections/posts'` |
-| What a list request ran as | `data.method = 'GET' && data.url ~ '/api/collections/posts/records'`, then read `data.auth` |
+| Every failed request of the app, including those a hook threw | `level >= 8 && data.auth != '_superusers'` |
+| Failures on one collection | `level >= 8 && data.auth != '_superusers' && data.url ~ '/api/collections/posts'` |
+| What a list request ran as | `data.method = 'GET' && data.url ~ '/api/collections/posts/records' && data.auth != '_superusers'`, then read `data.auth` |
 | Server errors only | `data.status >= 500` (rare; a throwing hook is status 0, not 5xx) |

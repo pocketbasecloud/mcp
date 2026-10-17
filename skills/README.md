@@ -10,8 +10,12 @@ own description says. Every packaged plugin in this repository installs them, an
 | [`debug-deploy`](debug-deploy/SKILL.md) | Why a deploy failed or an app does not start, and the command to deploy again. |
 | [`review-security`](review-security/SKILL.md) | Finding API rules that are too open, and fixing them with the user. |
 | [`setup-user-accounts`](setup-user-accounts/SKILL.md) | Users, per-user collections and safe rules: preview, back up, apply, check. |
+| [`design-collections`](design-collections/SKILL.md) | An app's collections from its description: fields, relations, indexes and rules, from checked templates. |
+| [`change-schema`](change-schema/SKILL.md) | Renaming, retyping or constraining fields that already hold data, without losing records. |
+| [`investigate-errors`](investigate-errors/SKILL.md) | Why the app gets an error or an empty list from a running instance, and the narrowest fix. |
+| [`launch-checklist`](launch-checklist/SKILL.md) | A read-only, scored check before an app goes live, with what it could not check. |
 
-They follow the prompts the server itself offers (`getting_started`, `debug_deploy`, `review_security`,
+The first four follow the prompts the server itself offers (`getting_started`, `debug_deploy`, `review_security`,
 `setup_auth`), with more detail on each step.
 
 All of them target `https://mcp.pocketbasecloud.com/mcp` and use only its tools. Every step that changes something

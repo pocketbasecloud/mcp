@@ -6,7 +6,7 @@ description: "Find out why a deploy on PocketBase Cloud failed, or why a deploye
 # Debug a failed deploy
 
 ## Keywords
-deploy failed, build failed, build error, app down, not starting, crashed, 500 error, why did my deploy fail, broken deploy, what's wrong, logs, redeploy
+deploy failed, build failed, build error, app down, not starting, crashed, why did my deploy fail, broken deploy, deploy logs, redeploy
 
 ## Overview
 
@@ -14,7 +14,7 @@ Finds the failing deployment, reads why it failed, and turns that into one fix t
 command to deploy again. Deploying source code runs on the user's machine with the `pbc` CLI, so the fix ends with
 a command, not a server-side action.
 
-**Use this skill when** a deploy failed, or an app on PocketBase Cloud is down or erroring.
+**Use this skill when** a deploy failed, or an app on PocketBase Cloud is down or won't start.
 
 ---
 
@@ -37,12 +37,14 @@ output directory, a type error, or a missing environment variable.
 
 ### Step 3: If it built but does not run
 
-When the build succeeded but the app does not start or answers with errors:
+When the build succeeded but the app does not start, or stops after starting:
 
 - Call `diagnose_resource` with `kind` and `resource`. In one call it checks the status, the latest deploys, error
   lines in the runtime log, server errors in a PocketBase instance's request log, and the custom domain, and
   returns a verdict.
 - For more detail, call `get_logs` with `kind`, `resource` and `lines`. Frontends have no runtime logs.
+- If it runs but a PocketBase instance answers the app's requests with errors (a 4xx or 5xx, a hook that throws, an
+  empty list), hand off to `investigate-errors`.
 
 ### Step 4: Explain and fix
 

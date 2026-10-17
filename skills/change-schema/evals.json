@@ -5,45 +5,56 @@
       "id": "rename-keeps-data",
       "prompt": "In eval-shop, rename title to name in posts.",
       "connection": { "read_only": false },
-      "must_call": ["get_collection", "count_records"],
-      "must_call_before": [["preview_collections", "apply_collections"], ["create_backup", "apply_collections"]],
-      "must_not_call": ["delete_collection", "remove_fields"],
+      "must_call": ["get_collection", "preview_collections"],
+      "must_not_call": ["apply_collections", "create_backup", "update_api_rules", "upsert_records", "update_record", "remove_fields", "delete_collection"],
       "answer_must": [
         "sends the field with its id under the new name, so the data stays",
         "rewrites the rules and indexes that name title in the same request",
-        "names the backup",
-        "says which app code and hooks must change"
-      ]
+        "says which app code and hooks must change",
+        "asks for approval before applying"
+      ],
+      "approve": {
+        "reply": "Yes, go ahead.",
+        "must_call_before": [["create_backup", "apply_collections"]],
+        "must_not_call": ["remove_fields", "delete_collection", "truncate_collection"],
+        "answer_must": ["names the backup", "checks the result with get_collection or count_records"]
+      }
     },
     {
       "id": "text-to-number",
       "prompt": "In eval-shop, make products.price a number; it is text now.",
       "connection": { "read_only": false },
-      "must_call": ["get_collection", "count_records", "upsert_records"],
-      "must_not_call": ["delete_collection"],
+      "must_call": ["get_collection", "count_records"],
+      "must_not_call": ["apply_collections", "create_backup", "upsert_records", "update_record", "remove_fields", "delete_collection"],
       "answer_must": [
         "never sends price with the number type in place of the text one",
-        "adds a new field, copies the values and proves the copy with counts",
-        "asks for approval again before removing the old field, and says restore_backup cannot bring it back"
-      ]
+        "plans the steps in order: add a new field, copy the values, prove the copy with counts, remove the old field, rename the new one",
+        "says removing the old field needs its own approval and restore_backup cannot bring it back"
+      ],
+      "approve": {
+        "reply": "Yes, add the new field.",
+        "must_call_before": [["create_backup", "apply_collections"]],
+        "must_not_call": ["upsert_records", "update_record", "remove_fields", "delete_collection"],
+        "answer_must": ["shows how the values convert, and the ones that do not, and asks before copying them"]
+      }
     },
     {
       "id": "unique-slug",
       "prompt": "In eval-shop, make posts.slug unique.",
       "connection": { "read_only": false },
       "must_call": ["get_collection", "list_records"],
-      "must_call_before": [["list_records", "apply_collections"]],
+      "must_not_call": ["apply_collections", "create_backup", "update_record", "upsert_records", "delete_record"],
       "answer_must": [
         "looks for duplicate slugs before adding the index",
         "keeps the existing indexes in the list",
-        "applies the index alone"
+        "applies the index alone, after approval"
       ]
     },
     {
       "id": "read-only",
       "prompt": "In eval-shop, make products.price a number.",
       "connection": { "read_only": true },
-      "must_not_call": ["apply_collections", "upsert_records", "update_record", "remove_fields", "create_backup"],
+      "must_not_call": ["apply_collections", "create_backup", "upsert_records", "update_record", "remove_fields"],
       "answer_must": ["gives the plan and the collection JSON", "gives a pb_migrations file or says how to get one", "says how to reconnect with read and write"]
     }
   ],

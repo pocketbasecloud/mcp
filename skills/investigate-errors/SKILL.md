@@ -22,21 +22,26 @@ hides the cause ("Something went wrong…", an empty list); the instance's reque
 
 ### Step 0: Name the target
 The project, the PocketBase instance, and what failed: the collection or route, the action, and as whom (a
-visitor, a signed-in user, one user and not another). Say them in one line.
+visitor, a signed-in user, one user and not another). Say them in one line. If the user said "read only", run no
+write tool in this conversation.
 
 ### Step 1: Health
 `diagnose_resource` (`kind: "pocketbase"`). A failed deploy or a stopped instance: hand off to `debug-deploy`. A
 pending custom domain: `check_domain`. A warning `instance_unreachable`: PocketBase Cloud cannot reach the instance,
 so every database tool fails on it though the app may be fine; retry in a few minutes, and if it lasts, have the
 user contact PocketBase Cloud support with the instance id; stop there. A warning `server_errors` names the route
-and the error a hook or route threw: go to step 3.
+and the error a hook or route threw: go to step 3. A warning `log_errors`: `get_logs` (`kind: "pocketbase"`) and
+read the lines around them; a hook file that fails to load shows only there, not in the request log.
 
 ### Step 2: Find the failing requests
-`get_request_logs` with `filter` `level >= 8`: every failed request, including those a hook threw (logged with
-status 0). Narrow it to the route the user named (`&& data.url ~ '/api/collections/posts'`). Entries are written a
-few seconds after the request: if the user just reproduced it, wait about five seconds before reading.
+`get_request_logs` with `filter` `level >= 8 && data.auth != '_superusers'`: every failed request of the app,
+including those a hook threw (logged with status 0). The tools here call the instance as a superuser, so your own
+reads land in the same log; the `data.auth` condition leaves them out. Narrow it to the route the user named
+(`&& data.url ~ '/api/collections/posts'`). Entries are written a few seconds after the request: if the user just
+reproduced it and it is not there, read again.
 For an empty list, read the successful list requests on that route
-(`data.method = 'GET' && data.url ~ '/api/collections/posts/records'`) and their `data.auth`.
+(`data.method = 'GET' && data.url ~ '/api/collections/posts/records' && data.auth != '_superusers'`) and their
+`data.auth`.
 
 ### Step 3: Name the cause
 Match each entry with `references/error-signatures.md`; `data.details` and `data.error` say most of it:
@@ -61,8 +66,12 @@ Say the cause in plain words, quoting at most three log entries, without tokens,
 - The app's code (no token sent, a wrong field name in a filter): say what to change, with the SDK call.
 
 ### Step 5: Check
-Have the user retry, wait a few seconds, then `get_request_logs` with the same filter: the failure is gone and the
-request answers as intended. `diagnose_resource` once more when a hook was the cause.
+Have the user retry, then `get_request_logs` with the same filter (read again if the retry is not there yet): the
+failure is gone and the request answers as intended. `diagnose_resource` once more when a hook was the cause.
+
+### Last step: Next
+`review-security` when the rules need a wider look than this one error; `change-schema` for a field or index fix;
+`debug-deploy` when the instance itself does not start.
 
 ---
 

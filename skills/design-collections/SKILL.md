@@ -1,12 +1,12 @@
 ---
 name: design-collections
-description: "Design the collections of a PocketBase instance on PocketBase Cloud from a description of the app: fields, relations, indexes and API rules. Use when the user describes an app and wants its data model, asks how to structure collections or tables, or wants collections for posts, products, orders, bookings, contacts, comments and the like. Proposes the model from rule patterns proven on a real PocketBase, previews it, backs up and applies it only after approval, then checks the rules and generates TypeScript types. Not for changing collections that already hold data: use change-schema."
+description: "Design the collections of a PocketBase instance on PocketBase Cloud from a description of the app: fields, relations, indexes and API rules. Use when the user describes an app and wants its data model, asks how to structure collections or tables, or wants collections for posts, products, orders, bookings, contacts, comments and the like. Proposes the model from rule patterns proven on a real PocketBase, previews it, backs up and applies it only after approval, then checks the rules and generates TypeScript types. Not for changing collections that already hold data: use change-schema. Not for sign-up and each user's own data alone: use setup-user-accounts."
 ---
 
 # Design collections
 
 ## Keywords
-data model, schema, collections, tables, design my database, fields, relations, api rules, permissions, who can see what, indexes, structure my app, posts, products, orders, bookings, contacts, comments
+data model, schema, collections, tables, design my database, fields, relations, indexes, structure my app, posts, products, orders, bookings, contacts, comments
 
 ## Overview
 
@@ -53,14 +53,15 @@ reads `@request.auth.role`. Show each rule in plain words next to its filter.
 
 ### Step 5: Preview
 Write the definitions as in `references/collection-json.md`: an `id` for each new collection, so relations in the
-same request can name it; `_pb_users_auth_` for `users`; an existing collection's id from `get_collection`. Call
-`preview_collections` (`migration: true` when the user keeps `pb_migrations/`). Show what it will create and what it
-refuses, and ask for approval of exactly that.
+same request can name it; for `users` and every other existing collection, the id `get_collection` gave in step 1
+(`users` is usually `_pb_users_auth_`). Call `preview_collections`. Show what it will create and what it refuses,
+and ask for approval of exactly that.
 
 ### Step 6: Back up, then apply
-After approval: `create_backup` with a name such as `before-<short-name>.zip`, then `apply_collections` with the same
-definitions (up to 20 collections per call). A backup brings records back, not a collection's design: say so if the
-user asks how to undo.
+If the app keeps `pb_migrations/` in git: `preview_collections` with `migration: true`, and have the user commit and
+deploy that file; apply live too only if they agree. Otherwise, after approval: `create_backup` with a name such as
+`before-<short-name>.zip`, then `apply_collections` with the same definitions (up to 20 collections per call). A
+backup brings records back, not a collection's design: say so if the user asks how to undo.
 
 ### Step 7: Check
 `check_security`. Go through each `critical` and `warning` with the user: fix it through steps 4 to 6, or keep it
@@ -71,8 +72,8 @@ before applying.
 `generate_types`; tell the user where to save the file in the app.
 
 ### Last step: Next
-`setup-user-accounts` when people sign in but the design has no owned data yet; `upsert_records` to load seed data;
-`search_docs` for the SDK code that reads and writes these collections.
+`setup-user-accounts` when the app's sign-up and sign-in are not set up yet; seed data with `create_records`, after
+the user approves the records; `search_docs` for the SDK code that reads and writes these collections.
 
 ---
 

@@ -64,3 +64,44 @@ test("a manifest path that points nowhere is caught", () => {
   });
   assert.match(validate(dir).join("\n"), /no-such-folder/);
 });
+
+test("an eval whose first turn needs a write tool is caught, since one headless turn can't approve", () => {
+  const dir = copy();
+  edit(dir, "skills/change-schema/evals.json", (e) => {
+    e.cases[0].must_call.push("apply_collections");
+  });
+  assert.match(validate(dir).join("\n"), /change-schema\/evals\.json.*apply_collections.*approve/);
+});
+
+test("a write tool the approved turn calls but the first turn allows is caught", () => {
+  const dir = copy();
+  edit(dir, "skills/change-schema/evals.json", (e) => {
+    const c = e.cases.find((c) => c.approve);
+    c.must_not_call = c.must_not_call.filter((t) => t !== "create_backup");
+  });
+  assert.match(validate(dir).join("\n"), /change-schema\/evals\.json.*create_backup.*must_not_call/);
+});
+
+test("a read-only skill's eval that leaves a write tool unforbidden is caught", () => {
+  const dir = copy();
+  edit(dir, "skills/launch-checklist/evals.json", (e) => {
+    e.cases[0].must_not_call = e.cases[0].must_not_call.filter((t) => t !== "verify_domain");
+  });
+  assert.match(validate(dir).join("\n"), /launch-checklist\/evals\.json.*verify_domain/);
+});
+
+test("an eval naming a tool the server does not have is caught", () => {
+  const dir = copy();
+  edit(dir, "skills/investigate-errors/evals.json", (e) => {
+    e.cases[0].must_call.push("get_request_log");
+  });
+  assert.match(validate(dir).join("\n"), /investigate-errors\/evals\.json.*get_request_log/);
+});
+
+test("an evals.json for another skill is caught", () => {
+  const dir = copy();
+  edit(dir, "skills/design-collections/evals.json", (e) => {
+    e.skill = "change-schema";
+  });
+  assert.match(validate(dir).join("\n"), /design-collections\/evals\.json.*skill/);
+});

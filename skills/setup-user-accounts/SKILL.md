@@ -6,7 +6,7 @@ description: "Design user accounts and per-user data in a PocketBase instance on
 # Set up user accounts
 
 ## Keywords
-user accounts, sign up, login, authentication, auth collection, users collection, own data, owner, per-user data, multi-user, collections design, schema, data model, api rules for users
+user accounts, sign up, login, authentication, auth collection, users collection, own data, owner, per-user data, multi-user, only see their own, api rules for users
 
 ## Overview
 

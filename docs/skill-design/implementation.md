@@ -231,10 +231,15 @@ change → back up when data can be lost → apply → check.>
       "id": "rename-keeps-data",
       "prompt": "In eval-shop, rename title to name in posts.",
       "connection": { "read_only": false },
-      "must_call": ["get_collection", "count_records"],
-      "must_call_before": [["preview_collections", "apply_collections"], ["create_backup", "apply_collections"]],
-      "must_not_call": ["delete_collection", "remove_fields"],
-      "answer_must": ["names the backup", "says the field is sent with its id so the data stays"]
+      "must_call": ["get_collection", "preview_collections"],
+      "must_not_call": ["apply_collections", "create_backup", "remove_fields", "delete_collection"],
+      "answer_must": ["says the field is sent with its id so the data stays", "asks for approval before applying"],
+      "approve": {
+        "reply": "Yes, go ahead.",
+        "must_call_before": [["create_backup", "apply_collections"]],
+        "must_not_call": ["remove_fields", "delete_collection"],
+        "answer_must": ["names the backup"]
+      }
     },
     {
       "id": "read-only",
@@ -274,8 +279,11 @@ change → back up when data can be lost → apply → check.>
 5. Append one row per run to `evals/results.csv`.
 
 A single headless turn can't approve anything, so a correct skill stops and asks: the write tools of a change belong
-in that case's `must_not_call`. To test the apply path, continue the same session with
-`claude -p --resume <session id> "Yes, go ahead"` and score that second turn.
+in that case's `must_not_call`. A case's `approve` holds the second turn that tests the apply path: the runner
+continues the same session with `claude -p --resume <session id> "<reply>"` and scores that turn's checks the same
+way. `npm run validate` holds evals to this: a first turn that requires a write tool fails it, as does an `approve`
+turn calling a write tool the first turn does not forbid, and a case of a read-only skill that leaves any write tool
+out of `must_not_call`.
 
 **Runs and budget.** Every case runs **N = 3** times per branch, because the same prompt doesn't always take the
 same path; a check passes when it passes in all 3. With about 27 task cases (3 per skill, the shipped four

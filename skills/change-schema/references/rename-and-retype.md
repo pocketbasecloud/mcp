@@ -1,7 +1,8 @@
 # Rename and retype, worked
 
 Every path below was run through pbc-mcp's tools against PocketBase 0.40.5 holding 120 records: the data was
-counted before and after.
+counted before and after. Ids such as `tpl_posts`, `tpl_products` and `text724990059` stand for the ones
+`get_collection` returns on the user's instance: always use those.
 
 ## What PocketBase does
 
@@ -47,25 +48,27 @@ List the field in full, as `get_collection` returned it (`required`, `max`…): 
 one, and options left out go back to their defaults. Other fields can be left out; they are kept. Then: the hooks
 and the app code that read `title`, and `generate_types`.
 
-## Make `price` a number (it is text)
+## Make `price` a number in `products` (it is text)
 
-1. **Expand**: add `price_new`, leaving `price` alone.
+1. **Expand**: add `price_new`, leaving `price` alone; preview, approval, backup, apply.
 
    ```json
-   [{ "id": "tpl_posts", "name": "posts", "type": "base",
+   [{ "id": "tpl_products", "name": "products", "type": "base",
       "fields": [{ "name": "price_new", "type": "number", "onlyInt": true, "min": 0 }] }]
    ```
 
-2. **Copy**: `list_records` with `fields` `id,price`, 50 a page; for each page, `upsert_records`:
+2. **Copy**, once `price_new` exists: `list_records` with `fields` `id,price`, 50 a page. Show the user how the
+   values convert, and list the text that is not a number (`"12,50"`, `"free"`): that is their decision. After their
+   approval, for each page, `upsert_records`:
 
    ```json
-   { "collection": "posts", "records": [{ "id": "0a5cpq7pf3hhit5", "price_new": 550 }, { "id": "0fwhnbvgqugdbm7", "price_new": 1250 }] }
+   { "collection": "products", "records": [{ "id": "0a5cpq7pf3hhit5", "price_new": 550 }, { "id": "0fwhnbvgqugdbm7", "price_new": 1250 }] }
    ```
 
-   Text that is not a number (`"12,50"`, `"free"`) is the user's decision: list those records and ask.
-
-3. **Prove**: `count_records` with groups `{"copied": "price_new > 0", "missing": "price_new = 0 && price != ''"}`.
-   Go on only when `missing` is 0 (or every miss is explained).
+3. **Prove**: `count_records` with groups
+   `{"copied": "price_new > 0", "missing": "price_new = 0 && price != '' && price != '0'"}`. A number field holds 0
+   when empty, so a price written as `"0"` is left out of `missing`; another way of writing zero (`"0.00"`) stays in
+   it. Go on only when every record left in `missing` is one the user decided on.
 
 4. **Contract**, after its own approval: `remove_fields` with `fields: ["price"]` (backs up first; the field cannot
    come back through `restore_backup`). Then rename `price_new` to `price` by its id, as above.

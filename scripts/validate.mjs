@@ -1,7 +1,8 @@
 /**
  * Checks the repository's manifests and skills against each other and against the limits of the places that read
  * them: every manifest parses, points at the same endpoint, carries the same plugin name and version, and names
- * paths that exist; server.json fits the MCP Registry; every skill has metadata whose name matches its folder.
+ * paths that exist; server.json fits the MCP Registry; every skill has metadata whose name matches its folder, and
+ * its evals expect no write before the user's approval.
  *
  *   node scripts/validate.mjs        # prints each problem, exits 1 if there is one
  */
@@ -15,6 +16,27 @@ const PLUGIN_NAME = /^[a-z0-9][a-z0-9.-]*$/;
 const REGISTRY_NAME = /^[a-zA-Z0-9.-]+\/[a-zA-Z0-9._-]+$/;
 /** Agent Skills: lowercase letters, digits and hyphens, at most 64 characters. */
 const SKILL_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+/**
+ * The server's tools by what they do, as pbc-mcp's annotation table lists them (`npm run annotations:table` there).
+ * Evals may name only these; a write tool needs the user's approval, which one headless turn can't give.
+ */
+const READ_TOOLS = [
+  "list_projects", "get_project", "get_plan", "list_regions", "get_overview", "list_resources", "get_resource",
+  "diagnose_resource", "get_logs", "list_deployments", "get_deployment", "get_deploy_command", "list_hooks",
+  "check_domain", "list_env_vars", "list_collections", "get_collection", "list_records", "get_record",
+  "count_records", "get_request_logs", "list_backups", "list_crons", "check_security", "check_performance",
+  "generate_types", "preview_collections", "search_docs",
+];
+const WRITE_TOOLS = [
+  "create_project", "create_pocketbase", "update_pocketbase_config", "set_continuous_backup", "deploy_hooks",
+  "deploy_public", "add_domain", "verify_domain", "remove_domain", "set_env_vars", "delete_env_vars",
+  "apply_collections", "update_api_rules", "create_record", "create_records", "upsert_records", "update_record",
+  "delete_record", "create_backup", "run_cron", "truncate_collection", "delete_collection", "remove_fields",
+  "restore_backup", "delete_backup",
+];
+/** Skills that only read: every case of theirs forbids every write tool (implementation.md, Definition of done). */
+const READ_ONLY_SKILLS = new Set(["launch-checklist"]);
 
 const MANIFESTS = [
   "server.json",
@@ -153,8 +175,55 @@ export function validate(root) {
     if (description.length < 1 || description.length > 1024) {
       errors.push(`${file}: description must be 1 to 1024 characters, not ${description.length}.`);
     }
+    if (existsSync(join(root, "skills", dir.name, "evals.json"))) checkEvals(root, dir.name, errors);
   }
   return errors;
+}
+
+/**
+ * A skill's evals.json: each case's first turn may only read, since a headless turn can't approve anything, and must
+ * forbid every write tool its `approve` turn (the user saying yes) is expected to call. Tools must exist.
+ */
+function checkEvals(root, skill, errors) {
+  const file = `skills/${skill}/evals.json`;
+  let evals;
+  try {
+    evals = JSON.parse(readFileSync(join(root, file), "utf8"));
+  } catch (e) {
+    errors.push(`${file}: ${e instanceof Error ? e.message : String(e)}`);
+    return;
+  }
+  if (evals.skill !== skill) errors.push(`${file}: skill "${evals.skill}" must be the folder's name, "${skill}".`);
+  const cases = Array.isArray(evals.cases) ? evals.cases : [];
+  if (cases.length < 3) errors.push(`${file}: needs at least 3 cases, not ${cases.length}.`);
+  if (!cases.some((c) => c.connection?.read_only === true)) errors.push(`${file}: needs a read-only case.`);
+  const known = new Set([...READ_TOOLS, ...WRITE_TOOLS]);
+  const writes = new Set(WRITE_TOOLS);
+  for (const c of cases) {
+    const at = `${file} case "${c.id}"`;
+    const turns = [c, ...(c.approve ? [c.approve] : [])];
+    for (const turn of turns) {
+      const named = [...(turn.must_call ?? []), ...(turn.must_call_before ?? []).flat(), ...(turn.must_not_call ?? [])];
+      for (const tool of named) if (!known.has(tool)) errors.push(`${at}: no tool is called ${tool}.`);
+    }
+    const required = (turn) => [...(turn.must_call ?? []), ...(turn.must_call_before ?? []).flat()];
+    for (const tool of new Set(required(c))) {
+      if (writes.has(tool)) errors.push(`${at}: the first turn can't approve ${tool}; expect it under approve.`);
+    }
+    const forbidden = new Set(c.must_not_call ?? []);
+    if (c.approve) {
+      for (const tool of new Set(required(c.approve))) {
+        if (writes.has(tool) && !forbidden.has(tool)) {
+          errors.push(`${at}: ${tool} runs after approval, so the first turn's must_not_call must name it.`);
+        }
+      }
+    }
+    if (READ_ONLY_SKILLS.has(skill)) {
+      if (c.approve) errors.push(`${at}: ${skill} only reads, so it has no approve turn.`);
+      const missing = WRITE_TOOLS.filter((t) => !forbidden.has(t));
+      if (missing.length > 0) errors.push(`${at}: ${skill} only reads; must_not_call lacks ${missing.join(", ")}.`);
+    }
+  }
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
