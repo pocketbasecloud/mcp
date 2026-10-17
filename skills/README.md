@@ -15,8 +15,8 @@ own description says. Every packaged plugin in this repository installs them, an
 | [`investigate-errors`](investigate-errors/SKILL.md) | Why the app gets an error or an empty list from a running instance, and the narrowest fix. |
 | [`launch-checklist`](launch-checklist/SKILL.md) | A read-only, scored check before an app goes live, with what it could not check. |
 
-The first four follow the prompts the server itself offers (`getting_started`, `debug_deploy`, `review_security`,
-`setup_auth`), with more detail on each step.
+Each follows a prompt the server itself offers (`getting_started`, `debug_deploy`, `review_security`, `setup_auth`,
+`design_collections`, `change_schema`, `investigate_errors`, `launch_checklist`), with more detail on each step.
 
 All of them target `https://mcp.pocketbasecloud.com/mcp` and use only its tools. Every step that changes something
 waits for the user's approval. When a tool a skill needs is missing, the connection is read-only or limited by its
