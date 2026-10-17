@@ -13,7 +13,17 @@ function resultData(result) {
   }
 }
 
-export async function connect(url, token) {
+/** Tools a call may repeat after a network error: reads, and writes that end in the same state when sent twice. */
+const SAFE_TO_REPEAT = new Set([
+  "list_collections", "get_collection", "count_records", "list_records", "list_backups", "list_hooks", "get_hook",
+  "get_resource", "apply_collections", "delete_collection", "remove_fields", "delete_record", "delete_backup",
+  "deploy_hooks",
+]);
+/** An error a restarting instance or a dropped connection gives, which can pass on its own. */
+const PASSING = /NETWORK_ERROR|PLATFORM_ERROR|ECONNRESET|fetch failed|socket|HTTP 50[234]/;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+export async function connect(url, token, { retryDelayMs = 2000 } = {}) {
   let session;
   let id = 0;
   async function rpc(method, params, notification = false) {
@@ -41,14 +51,25 @@ export async function connect(url, token) {
   await rpc("initialize", { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "pbc-evals", version: "1.0.0" } });
   await rpc("notifications/initialized", {}, true);
   return {
-    /** Calls a tool and returns its data; a tool error throws with the server's code and message. */
+    /**
+     * Calls a tool and returns its data; a tool error throws with the server's code and message. A tool that is safe
+     * to repeat is asked again, up to four times with a growing wait, while the error is one that passes on its own.
+     */
     async call(name, args = {}) {
-      const result = await rpc("tools/call", { name, arguments: args });
-      const data = resultData(result);
-      if (result.isError || data?.error) {
-        throw new Error(`${name}: ${data?.error?.code ?? "ERROR"} ${data?.error?.message ?? JSON.stringify(data).slice(0, 300)}`);
+      for (let attempt = 0; ; attempt++) {
+        try {
+          const result = await rpc("tools/call", { name, arguments: args });
+          const data = resultData(result);
+          if (result.isError || data?.error) {
+            throw new Error(`${name}: ${data?.error?.code ?? "ERROR"} ${data?.error?.message ?? JSON.stringify(data).slice(0, 300)}`);
+          }
+          return data;
+        } catch (e) {
+          const message = e instanceof Error ? e.message : String(e);
+          if (attempt >= 4 || !SAFE_TO_REPEAT.has(name) || !PASSING.test(message)) throw e;
+          await sleep(retryDelayMs * 2 ** attempt);
+        }
       }
-      return data;
     },
   };
 }
