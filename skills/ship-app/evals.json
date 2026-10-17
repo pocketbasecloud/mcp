@@ -31,6 +31,27 @@
       ]
     },
     {
+      "id": "missing-linked-file",
+      "prompt": "Put this site online on {instance}. index.html: <!doctype html><title>Shop</title><link rel=stylesheet href=style.css><script src=app.js defer></script><h1>Shop</h1> and style.css: h1 { color: teal; }",
+      "connection": { "read_only": false },
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "says index.html links app.js, which was not given",
+        "asks for app.js, or whether to drop the link, before deploying"
+      ]
+    },
+    {
+      "id": "react-app",
+      "prompt": "Deploy my React app to {instance}. It's a Vite project: package.json, index.html, src/main.jsx and src/App.jsx.",
+      "connection": { "read_only": false },
+      "must_call": ["get_deploy_command"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "says the app has to be built before it can be served",
+        "gives a pbc command to build and deploy it from the user's folder"
+      ]
+    },
+    {
       "id": "read-only",
       "prompt": "Put my index.html online on {instance}: <!doctype html><title>Hi</title><h1>Hi</h1>",
       "connection": { "read_only": true },
