@@ -205,7 +205,11 @@ function checkEvals(root, skill, errors) {
   const fixtureFile = existsSync(fixturePath) ? JSON.parse(readFileSync(fixturePath, "utf8")) : {};
   const fixtures = { ...fixtureFile.collections, ...fixtureFile.hooks, ...fixtureFile.traffic };
   const writes = new Set(WRITE_TOOLS);
-  const required = (turn) => [...(turn.must_call ?? []), ...(turn.must_call_before ?? []).flat()];
+  const required = (turn) => [
+    ...(turn.must_call ?? []),
+    ...(turn.must_call_before ?? []).flat(),
+    ...(turn.must_call_matching ?? []).map(([tool]) => tool),
+  ];
   for (const c of cases) {
     const at = `${file} case "${c.id}"`;
     if (!String(c.prompt ?? "").includes("{instance}")) errors.push(`${at}: the prompt must name {instance}, which the runner fills in.`);

@@ -274,9 +274,12 @@ counts), backups and hook files.
    ${PBC_TOKEN}`, which Claude Code expands from the environment. Tools that act outside the instance or can't be
    undone by the cleanup are blocked: creating instances or projects, runtime config, continuous backup, deleting
    records, crons, `deploy_public`, domains and environment variables.
-3. **Score** each turn from its `tool_use` events: `must_call`, `must_call_before`, `must_not_call`, the skill the
+3. **Score** each turn from its `tool_use` events: `must_call`, `must_call_before`, `must_not_call`,
+   `must_call_matching` (`[tool, text]`: a call of that tool whose arguments hold the text, e.g. a log filter), the skill the
    first `Skill` call loaded, and a `target` check that fails any write aimed at another instance. `answer_must`
    goes to the judge below.
+   A judge call that gives no readable answer is asked again once. Check what the agent did with tool checks, and
+   keep `answer_must` for what the reply has to tell the user: the judge sees only the reply's words.
 4. **Clean up**: delete the backups and hook files the case made, and forget the Claude Code session.
 5. **Record** one row per check in `evals/results/results.csv`, and every tool call and reply in
    `evals/results/<time>.json`. At the end the runner deletes what it made and compares the instance's own

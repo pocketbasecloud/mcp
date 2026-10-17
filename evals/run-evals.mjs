@@ -230,19 +230,27 @@ const judgePrompt = readFileSync(join(ROOT, "evals/judge.md"), "utf8");
 async function judge(requirements, reply) {
   if (!requirements?.length) return { verdicts: [], cost: 0 };
   const text = `${judgePrompt}\nRequirements:\n${requirements.map((r) => `- ${r}`).join("\n")}\n\nReply:\n<<<\n${reply}\n>>>`;
-  const cwd = mkdtempSync(join(tmpdir(), "pbc-judge-"));
-  const { out } = await run("claude", ["-p", text, "--output-format", "json", "--model", opt["judge-model"], "--setting-sources", "project",
-    "--mcp-config", emptyConfig, "--strict-mcp-config", "--no-session-persistence", "--tools", ""], cwd, 3 * 60_000);
-  rmSync(cwd, { recursive: true, force: true });
   let answers = [];
   let cost = 0;
-  try {
-    const res = JSON.parse(out);
-    cost = res.total_cost_usd ?? 0;
-    const body = String(res.result ?? "");
-    answers = JSON.parse(body.slice(body.indexOf("["), body.lastIndexOf("]") + 1));
-  } catch {}
-  return { verdicts: judgeVerdicts(requirements, answers, reply), cost };
+  let trouble = "";
+  // A judge call that errors or times out now and then is asked again once, so a lost answer is not a fail.
+  for (let attempt = 0; attempt < 2 && answers.length === 0; attempt++) {
+    const cwd = mkdtempSync(join(tmpdir(), "pbc-judge-"));
+    const { code, out } = await run("claude", ["-p", text, "--output-format", "json", "--model", opt["judge-model"], "--setting-sources", "project",
+      "--mcp-config", emptyConfig, "--strict-mcp-config", "--no-session-persistence", "--tools", ""], cwd, 3 * 60_000);
+    rmSync(cwd, { recursive: true, force: true });
+    try {
+      const res = JSON.parse(out);
+      cost += res.total_cost_usd ?? 0;
+      const body = String(res.result ?? "");
+      answers = JSON.parse(body.slice(body.indexOf("["), body.lastIndexOf("]") + 1));
+    } catch {
+      trouble = `judge gave no readable answer (exit ${code}${out ? `, ${out.slice(-120)}` : ""})`;
+    }
+  }
+  const verdicts = judgeVerdicts(requirements, answers, reply);
+  if (answers.length === 0) for (const v of verdicts) v.detail = trouble;
+  return { verdicts, cost };
 }
 
 /** Claude Code keeps each session under ~/.claude/projects/<cwd with non-alphanumerics as dashes>. */

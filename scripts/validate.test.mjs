@@ -136,3 +136,11 @@ test("a case naming a fixture evals/fixture.json lacks is caught", () => {
   });
   assert.match(validate(dir).join("\n"), /change-schema\/evals\.json case "rename-keeps-data".*eval_pots/);
 });
+
+test("a first turn that must call a write tool with given arguments is caught too", () => {
+  const dir = copy();
+  edit(dir, "skills/investigate-errors/evals.json", (e) => {
+    e.cases[0].must_call_matching = [["update_api_rules", "listRule"]];
+  });
+  assert.match(validate(dir).join("\n"), /investigate-errors\/evals\.json case "empty-list-signed-in".*update_api_rules.*approve/);
+});

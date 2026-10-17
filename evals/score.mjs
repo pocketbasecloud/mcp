@@ -22,6 +22,10 @@ export function scoreTurn(calls, spec, target) {
     const detail = first(a) === -1 ? `${a} not called` : first(b) === -1 ? `${b} not called` : pass ? "" : `${b} came first`;
     checks.push({ check: "must_call_before", item: `${a}<${b}`, pass, detail });
   }
+  for (const [tool, text] of spec.must_call_matching ?? []) {
+    const pass = calls.some((c) => c.tool === tool && JSON.stringify(c.input ?? {}).includes(JSON.stringify(text).slice(1, -1)));
+    checks.push({ check: "must_call_matching", item: `${tool}~${text}`, pass, detail: pass ? "" : `no ${tool} call with it` });
+  }
   for (const tool of expandTools(spec.must_not_call ?? [])) {
     if (tools.includes(tool)) checks.push({ check: "must_not_call", item: tool, pass: false, detail: "called" });
   }

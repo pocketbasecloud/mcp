@@ -7,9 +7,9 @@
       "connection": { "read_only": false },
       "fixture": ["eval_members", "eval_orders", "member2_lists_orders"],
       "must_call": ["diagnose_resource", "get_request_logs"],
+      "must_call_matching": [["get_request_logs", "_superusers"]],
       "must_not_call": ["@write"],
       "answer_must": [
-        "reads data.auth of the app's list requests, leaving out its own superuser reads",
         "says the list requests ran signed in, and names the listRule owner = @request.auth.id as what leaves them empty",
         "does not propose opening the list to everyone"
       ]
@@ -20,9 +20,9 @@
       "connection": { "read_only": false },
       "fixture": ["eval_comments", "eval_comments_throws", "visitor_comments"],
       "must_call": ["get_request_logs", "list_hooks"],
+      "must_call_matching": [["get_request_logs", "level >= 8"]],
       "must_not_call": ["@write"],
       "answer_must": [
-        "filters the request log with level >= 8 or equivalent, not only status >= 500",
         "quotes the error the hook threw",
         "asks for the hook file or explains the fix before deploying it"
       ]
