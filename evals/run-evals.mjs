@@ -3,6 +3,7 @@
 //
 //   PBC_TOKEN=<cli token> node evals/run-evals.mjs --instance <id> --project <id> [--skill change-schema]
 //     [--case rename-keeps-data] [--runs 3] [--branches with,without] [--no-boundaries] [--model opus]
+//     [--allow deploy_public]
 //
 // The instance is reset before every case: each collection it did not have when the run began is deleted, then the
 // case's fixture (evals/fixture.json) is created. Backups and hook files made during a case are removed after it. The
@@ -30,6 +31,7 @@ const { values: opt } = parseArgs({
     model: { type: "string", default: "opus" },
     "judge-model": { type: "string", default: "sonnet" },
     server: { type: "string", default: "https://mcp.pocketbasecloud.com/mcp" },
+    allow: { type: "string", multiple: true },
   },
 });
 const TOKEN = process.env.PBC_TOKEN;
@@ -39,11 +41,17 @@ if (!TOKEN || !opt.instance || !opt.project) {
 }
 const RUNS = Number(opt.runs);
 const BRANCHES = opt.branches.split(",");
-/** Tools no eval needs and none may reach: they act outside the instance or can't be undone by the cleanup. */
+/**
+ * Tools no eval needs and none may reach: they act outside the instance or can't be undone by the cleanup. --allow
+ * lifts one for a skill that needs it, e.g. deploy_public for ship-app (it replaces the instance's pb_public, which
+ * the cleanup cannot put back).
+ */
 const BLOCKED = [
   "create_pocketbase", "update_pocketbase_config", "set_continuous_backup", "create_project", "delete_record",
   "run_cron", "deploy_public", "add_domain", "verify_domain", "remove_domain", "set_env_vars", "delete_env_vars",
-].map((t) => `mcp__pocketbasecloud__${t}`);
+]
+  .filter((t) => !(opt.allow ?? []).includes(t))
+  .map((t) => `mcp__pocketbasecloud__${t}`);
 const FEATURES = "account,resources,deploy,database,docs";
 const url = (extra) => `${opt.server}?project_ref=${opt.project}&features=${extra ?? FEATURES}`;
 

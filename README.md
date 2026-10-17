@@ -289,6 +289,7 @@ This forwards your token to PocketBase Cloud as is (token passthrough); interact
 | [`investigate-errors`](skills/investigate-errors/SKILL.md) | Why the app gets errors or empty lists, and the fix. |
 | [`launch-checklist`](skills/launch-checklist/SKILL.md) | A read-only, scored check before going live. |
 | [`write-hooks`](skills/write-hooks/SKILL.md) | Server code in `pb_hooks`, read first and deployed with approval. |
+| [`ship-app`](skills/ship-app/SKILL.md) | A site online from `pb_public` or a frontend, sent whole. |
 
 With a plain MCP setup (no plugin), copy a skill's folder into your client's skills directory, or ask your
 assistant to read the `SKILL.md`.
