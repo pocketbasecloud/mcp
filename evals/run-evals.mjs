@@ -73,7 +73,41 @@ const baseNames = (await userCollections()).filter((n) => !isEval(n));
 const baseline = await snapshot(baseNames);
 const baseBackups = new Set((await admin.call("list_backups", { resource: R })).backups.map((b) => b.key));
 const baseHooks = new Set((await admin.call("list_hooks", { resource: R })).hooks.map((h) => h.filename));
-const fixture = JSON.parse(readFileSync(join(ROOT, "evals/fixture.json"), "utf8")).collections;
+const fixture = JSON.parse(readFileSync(join(ROOT, "evals/fixture.json"), "utf8"));
+const base = `https://${target.domain}`;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** Waits for the instance to answer again after a hook deploy restarts it. */
+async function waitHealthy() {
+  await sleep(3000);
+  for (let i = 0; i < 60; i++) {
+    const ok = await fetch(`${base}/api/health`).then((r) => r.ok, () => false);
+    if (ok) return sleep(2000);
+    await sleep(1000);
+  }
+  throw new Error(`${target.name} did not answer after the hook deploy.`);
+}
+
+/** Sends one fixture request to the instance, as a visitor or as a fixture member (`as`: "eval_members.1"). */
+async function send(request, fill) {
+  const headers = { "content-type": "application/json" };
+  if (request.as) {
+    const [collection, index] = request.as.split(".");
+    const { email, password } = fixture.collections[collection].records[Number(index)];
+    const auth = await fetch(`${base}/api/collections/${collection}/auth-with-password`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ identity: email, password }),
+    }).then((r) => r.json());
+    if (!auth.token) throw new Error(`Could not sign in as ${request.as}.`);
+    headers.authorization = auth.token;
+  }
+  await fetch(`${base}${fill(request.path)}`, {
+    method: request.method,
+    headers,
+    body: request.body ? JSON.stringify(request.body) : undefined,
+  });
+}
 
 async function reset(parts = []) {
   // A collection another one relates to is refused until that one is gone, so a few passes clear any order.
@@ -88,11 +122,28 @@ async function reset(parts = []) {
   }
   const left = (await userCollections()).filter((n) => !baseNames.includes(n));
   if (left.length) throw new Error(`Could not delete ${left.join(", ")}; check the instance by hand.`);
-  for (const part of parts) {
-    const { definition, records } = fixture[part];
+  // Collections with their records, then hooks, then traffic, whatever order the case lists them in.
+  const ids = {};
+  const fill = (v) =>
+    typeof v === "string" ? v.replace(/\{(\w+)\.(\d+)\}/g, (all, c, i) => ids[c]?.[Number(i)] ?? all) : v;
+  for (const part of parts.filter((p) => p in fixture.collections)) {
+    const { definition, records } = fixture.collections[part];
     await admin.call("apply_collections", { resource: R, collections: [definition] });
-    if (records?.length) await admin.call("create_records", { resource: R, collection: part, records });
+    if (records?.length) {
+      const rows = records.map((r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, fill(v)])));
+      ids[part] = (await admin.call("create_records", { resource: R, collection: part, records: rows })).ids;
+    }
   }
+  const hooks = parts.filter((p) => p in (fixture.hooks ?? {}));
+  if (hooks.length) {
+    const files = hooks.map((h) => ({ filename: fixture.hooks[h].filename, content: fixture.hooks[h].content }));
+    await admin.call("deploy_hooks", { resource: R, files });
+    await waitHealthy();
+  }
+  const traffic = parts.filter((p) => p in (fixture.traffic ?? {}));
+  for (const t of traffic) for (const request of fixture.traffic[t].requests) await send(request, fill);
+  // PocketBase writes request log entries a few seconds after the request.
+  if (traffic.length) await sleep(6000);
 }
 
 async function cleanup() {
@@ -102,6 +153,7 @@ async function cleanup() {
   for (const h of (await admin.call("list_hooks", { resource: R })).hooks) {
     if (baseHooks.has(h.filename)) continue;
     await run("pbc", ["pocketbase", "hooks", "rm", h.filename, "--name", target.name, "--project", opt.project, "--yes", "--no-input"], tmpdir(), 60_000);
+    await waitHealthy();
   }
 }
 

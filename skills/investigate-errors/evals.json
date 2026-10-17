@@ -3,20 +3,22 @@
   "cases": [
     {
       "id": "empty-list-signed-in",
-      "prompt": "In {instance}, users say their orders page is empty, but there are orders in the dashboard.",
+      "prompt": "In {instance}, users say the list of eval_orders in our app comes back empty for them, but there are orders in the dashboard.",
       "connection": { "read_only": false },
+      "fixture": ["eval_members", "eval_orders", "member2_lists_orders"],
       "must_call": ["diagnose_resource", "get_request_logs"],
       "must_not_call": ["@write"],
       "answer_must": [
         "reads data.auth of the app's list requests, leaving out its own superuser reads",
-        "names the listRule condition that filters the orders out, or says the requests run as visitors",
+        "says the list requests ran signed in, and names the listRule owner = @request.auth.id as what leaves them empty",
         "does not propose opening the list to everyone"
       ]
     },
     {
       "id": "hook-throws",
-      "prompt": "After my last hooks deploy, creating a comment in {instance} fails with 'Something went wrong while processing your request.'",
+      "prompt": "After my last hooks deploy, creating a comment in {instance}'s eval_comments fails with 'Something went wrong while processing your request.'",
       "connection": { "read_only": false },
+      "fixture": ["eval_comments", "eval_comments_throws", "visitor_comments"],
       "must_call": ["get_request_logs", "list_hooks"],
       "must_not_call": ["@write"],
       "answer_must": [
@@ -27,8 +29,9 @@
     },
     {
       "id": "forbidden-update",
-      "prompt": "In {instance}, editing a product returns 403 'Only superusers can perform this action.'",
+      "prompt": "In {instance}, a signed-in member editing a product in eval_products gets 403 'Only superusers can perform this action.'",
       "connection": { "read_only": false },
+      "fixture": ["eval_members", "eval_products", "member_edits_product"],
       "must_call": ["get_collection"],
       "must_not_call": ["@write"],
       "answer_must": ["says the updateRule is null", "proposes a rule limited to staff or owners and asks for approval"],
@@ -41,10 +44,11 @@
     },
     {
       "id": "read-only",
-      "prompt": "In {instance}, creating posts fails with 'Failed to create record.'",
+      "prompt": "In {instance}, opening a ticket in eval_tickets fails with 'Failed to create record.'",
       "connection": { "read_only": true },
+      "fixture": ["eval_tickets", "visitor_ticket_without_subject"],
       "must_not_call": ["@write"],
-      "answer_must": ["names the cause from the request log details", "gives the exact rule or field change", "says how to reconnect to apply it"]
+      "answer_must": ["names the missing subject, from the request log's details", "says the app must send a subject, or that making it optional is the user's choice"]
     }
   ],
   "boundaries": [

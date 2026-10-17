@@ -202,14 +202,15 @@ function checkEvals(root, skill, errors) {
   if (!cases.some((c) => c.connection?.read_only === true)) errors.push(`${file}: needs a read-only case.`);
   const known = new Set([...READ_TOOLS, ...WRITE_TOOLS, ALL_WRITES]);
   const fixturePath = join(root, "evals/fixture.json");
-  const fixtures = existsSync(fixturePath) ? JSON.parse(readFileSync(fixturePath, "utf8")).collections : {};
+  const fixtureFile = existsSync(fixturePath) ? JSON.parse(readFileSync(fixturePath, "utf8")) : {};
+  const fixtures = { ...fixtureFile.collections, ...fixtureFile.hooks, ...fixtureFile.traffic };
   const writes = new Set(WRITE_TOOLS);
   const required = (turn) => [...(turn.must_call ?? []), ...(turn.must_call_before ?? []).flat()];
   for (const c of cases) {
     const at = `${file} case "${c.id}"`;
     if (!String(c.prompt ?? "").includes("{instance}")) errors.push(`${at}: the prompt must name {instance}, which the runner fills in.`);
     for (const part of c.fixture ?? []) {
-      if (!(part in fixtures)) errors.push(`${at}: evals/fixture.json has no collection ${part}.`);
+      if (!(part in fixtures)) errors.push(`${at}: evals/fixture.json has no collection, hook or traffic ${part}.`);
     }
     for (const turn of [c, ...(c.approve ? [c.approve] : [])]) {
       for (const tool of [...required(turn), ...(turn.must_not_call ?? [])]) {

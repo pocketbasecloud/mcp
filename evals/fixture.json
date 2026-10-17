@@ -1,5 +1,5 @@
 {
-  "about": "Collections the eval cases start from. The runner deletes every collection the instance did not have when it started, then creates the ones a case names under fixture, with their records.",
+  "about": "What the eval cases start from. A case's fixture names entries of collections (created with their records), hooks (deployed; the instance restarts) and traffic (requests sent to the instance so its request log holds them), applied in that order. A record value \"{eval_members.0}\" is the id of that collection's first fixture record. The runner deletes every collection the instance did not have when it started, and the hooks and backups a case made.",
   "collections": {
     "eval_posts": {
       "note": "title is named by both rules and an index; two slugs repeat (post-2, post-7).",
@@ -210,6 +210,218 @@
         {
           "name": "Product 15",
           "price": "60"
+        }
+      ]
+    },
+    "eval_members": {
+      "note": "An auth collection of its own, so the instance's users stay untouched. The passwords are for this fixture only.",
+      "definition": {
+        "id": "evalmembers0001",
+        "name": "eval_members",
+        "type": "auth",
+        "listRule": "id = @request.auth.id",
+        "viewRule": "id = @request.auth.id",
+        "createRule": null,
+        "updateRule": "id = @request.auth.id",
+        "deleteRule": null,
+        "fields": [
+          {
+            "name": "name",
+            "type": "text",
+            "max": 100
+          }
+        ],
+        "passwordAuth": {
+          "enabled": true,
+          "identityFields": [
+            "email"
+          ]
+        }
+      },
+      "records": [
+        {
+          "email": "member1@eval.test",
+          "password": "eval-member-pass-1",
+          "passwordConfirm": "eval-member-pass-1",
+          "name": "Member One",
+          "verified": true
+        },
+        {
+          "email": "member2@eval.test",
+          "password": "eval-member-pass-2",
+          "passwordConfirm": "eval-member-pass-2",
+          "name": "Member Two",
+          "verified": true
+        }
+      ]
+    },
+    "eval_orders": {
+      "note": "Each member sees only their own orders; every order belongs to member 1, so member 2's list is empty.",
+      "definition": {
+        "id": "evalorders00001",
+        "name": "eval_orders",
+        "type": "base",
+        "listRule": "owner = @request.auth.id",
+        "viewRule": "owner = @request.auth.id",
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "fields": [
+          {
+            "name": "owner",
+            "type": "relation",
+            "required": true,
+            "collectionId": "evalmembers0001",
+            "maxSelect": 1
+          },
+          {
+            "name": "total",
+            "type": "number",
+            "min": 0
+          },
+          {
+            "name": "created",
+            "type": "autodate",
+            "onCreate": true,
+            "onUpdate": false
+          }
+        ]
+      },
+      "records": [
+        {
+          "owner": "{eval_members.0}",
+          "total": 1200
+        },
+        {
+          "owner": "{eval_members.0}",
+          "total": 450
+        },
+        {
+          "owner": "{eval_members.0}",
+          "total": 3990
+        }
+      ]
+    },
+    "eval_comments": {
+      "note": "Anyone may comment; the hook eval_comments.pb.js checks each one.",
+      "definition": {
+        "id": "evalcomments001",
+        "name": "eval_comments",
+        "type": "base",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": "",
+        "updateRule": null,
+        "deleteRule": null,
+        "fields": [
+          {
+            "name": "body",
+            "type": "text",
+            "required": true,
+            "max": 500
+          },
+          {
+            "name": "created",
+            "type": "autodate",
+            "onCreate": true,
+            "onUpdate": false
+          }
+        ]
+      },
+      "records": []
+    },
+    "eval_tickets": {
+      "note": "Anyone may open a ticket; subject is required.",
+      "definition": {
+        "id": "evaltickets0001",
+        "name": "eval_tickets",
+        "type": "base",
+        "listRule": null,
+        "viewRule": null,
+        "createRule": "",
+        "updateRule": null,
+        "deleteRule": null,
+        "fields": [
+          {
+            "name": "subject",
+            "type": "text",
+            "required": true,
+            "max": 200
+          },
+          {
+            "name": "message",
+            "type": "text",
+            "max": 2000
+          }
+        ]
+      },
+      "records": []
+    }
+  },
+  "hooks": {
+    "eval_comments_throws": {
+      "note": "A typo (toLowercase) makes every comment create throw: the client gets 400 \"Something went wrong\u2026\", the log status 0 and the TypeError.",
+      "filename": "eval_comments.pb.js",
+      "content": "/// <reference path=\"../pb_data/types.d.ts\" />\n\n// Refuses comments that look like spam.\nonRecordCreateRequest((e) => {\n  const body = e.record.getString(\"body\").toLowercase();\n  if (body.includes(\"buy now\")) {\n    throw new BadRequestError(\"Looks like spam.\");\n  }\n  e.next();\n}, \"eval_comments\");\n"
+    }
+  },
+  "traffic": {
+    "member2_lists_orders": {
+      "note": "200 with no items, logged with auth \"eval_members\".",
+      "requests": [
+        {
+          "as": "eval_members.1",
+          "method": "GET",
+          "path": "/api/collections/eval_orders/records?sort=-created"
+        },
+        {
+          "as": "eval_members.1",
+          "method": "GET",
+          "path": "/api/collections/eval_orders/records?sort=-created"
+        }
+      ]
+    },
+    "visitor_comments": {
+      "note": "Each create hits the throwing hook.",
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/collections/eval_comments/records",
+          "body": {
+            "body": "Great recipe, thanks!"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/collections/eval_comments/records",
+          "body": {
+            "body": "Nice post"
+          }
+        }
+      ]
+    },
+    "member_edits_product": {
+      "note": "updateRule is null: 403 Only superusers can perform this action.",
+      "requests": [
+        {
+          "as": "eval_members.0",
+          "method": "PATCH",
+          "path": "/api/collections/eval_products/records/{eval_products.0}",
+          "body": {
+            "price": "13"
+          }
+        }
+      ]
+    },
+    "visitor_ticket_without_subject": {
+      "note": "400 Failed to create record, details: subject cannot be blank.",
+      "requests": [
+        {
+          "method": "POST",
+          "path": "/api/collections/eval_tickets/records",
+          "body": {
+            "message": "The app crashes when I upload a photo."
+          }
         }
       ]
     }
