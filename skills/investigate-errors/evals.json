@@ -19,7 +19,7 @@
       "prompt": "After my last hooks deploy, creating a comment in {instance}'s eval_comments fails with 'Something went wrong while processing your request.'",
       "connection": { "read_only": false },
       "fixture": ["eval_comments", "eval_comments_throws", "visitor_comments"],
-      "must_call": ["get_request_logs", "list_hooks"],
+      "must_call": ["get_request_logs", "list_hooks", "get_hook"],
       "must_call_matching": [["get_request_logs", "level >= 8"]],
       "must_not_call": ["@write"],
       "answer_must": [

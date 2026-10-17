@@ -1,0 +1,60 @@
+{
+  "skill": "write-hooks",
+  "cases": [
+    {
+      "id": "refuse-links",
+      "prompt": "In {instance}, refuse new comments in eval_comments that contain a link, with a clear message.",
+      "connection": { "read_only": false },
+      "fixture": ["eval_comments"],
+      "must_call": ["list_hooks", "search_docs"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "shows the complete hook file before deploying it",
+        "says the deploy restarts the instance, and asks for approval"
+      ],
+      "approve": {
+        "reply": "Yes, deploy it.",
+        "must_call": ["deploy_hooks"],
+        "must_call_matching": [["deploy_hooks", "e.next()"], ["deploy_hooks", "BadRequestError"]],
+        "must_call_before": [["deploy_hooks", "get_logs"]],
+        "must_not_call": ["deploy_public", "delete_collection", "apply_collections"],
+        "answer_must": ["says how the user can try it"]
+      }
+    },
+    {
+      "id": "fix-throwing-hook",
+      "prompt": "In {instance}, my hook for eval_comments makes every new comment fail. Fix it.",
+      "connection": { "read_only": false },
+      "fixture": ["eval_comments", "eval_comments_throws", "visitor_comments"],
+      "must_call": ["get_hook"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "names the toLowercase typo as the cause",
+        "shows the corrected file, keeping its spam check",
+        "asks for approval before deploying"
+      ],
+      "approve": {
+        "reply": "Yes, deploy the fix.",
+        "must_call": ["deploy_hooks"],
+        "must_call_matching": [["deploy_hooks", "toLowerCase()"], ["deploy_hooks", "buy now"]],
+        "must_call_before": [["deploy_hooks", "get_logs"]],
+        "must_not_call": ["deploy_public", "delete_collection", "apply_collections"]
+      }
+    },
+    {
+      "id": "read-only",
+      "prompt": "In {instance}, add a job that logs how many eval_orders there are, every night at 3.",
+      "connection": { "read_only": true },
+      "fixture": ["eval_members", "eval_orders"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "gives the complete hook file with cronAdd",
+        "says how to deploy it from the user's machine or after connecting with write access"
+      ]
+    }
+  ],
+  "boundaries": [
+    { "prompt": "Creating a comment in {instance} fails with 'Something went wrong while processing your request.'", "expected_skill": "investigate-errors", "should_not_trigger": "write-hooks" },
+    { "prompt": "Add a hook in {instance} that refuses eval_orders with a total over 10000", "expected_skill": "write-hooks", "should_not_trigger": "design-collections" }
+  ]
+}
