@@ -1,0 +1,47 @@
+{
+  "skill": "design-collections",
+  "cases": [
+    {
+      "id": "recipes-app",
+      "prompt": "In eval-shop, I'm building a recipe app: recipes, ingredients, ratings, favorites.",
+      "connection": { "read_only": false },
+      "must_call": ["list_collections", "get_collection"],
+      "must_call_before": [["preview_collections", "apply_collections"], ["create_backup", "apply_collections"]],
+      "must_not_call": ["delete_collection", "remove_fields"],
+      "answer_must": [
+        "asks about who can see what at most once",
+        "relates ratings and favorites to users and recipes by collection id",
+        "proposes a unique index on (user, recipe) for favorites",
+        "shows the preview and waits for approval before applying"
+      ]
+    },
+    {
+      "id": "blog-on-a-shop",
+      "prompt": "Add a blog to eval-shop.",
+      "connection": { "read_only": false },
+      "must_call": ["list_collections"],
+      "must_call_before": [["preview_collections", "apply_collections"]],
+      "must_not_call": ["delete_collection", "remove_fields", "truncate_collection"],
+      "answer_must": [
+        "keeps the existing collections untouched",
+        "limits public reads to published posts",
+        "guards the author so nobody posts as someone else"
+      ]
+    },
+    {
+      "id": "read-only",
+      "prompt": "In eval-shop, design collections for a booking app: services and bookings.",
+      "connection": { "read_only": true },
+      "must_not_call": ["apply_collections", "create_backup", "update_api_rules"],
+      "answer_must": [
+        "gives the collection JSON",
+        "gives a pb_migrations file or says preview_collections with migration: true makes one",
+        "says how to reconnect with read and write to apply it"
+      ]
+    }
+  ],
+  "boundaries": [
+    { "prompt": "Make price a number in eval-shop", "expected_skill": "change-schema", "should_not_trigger": "design-collections" },
+    { "prompt": "Users should only see their own notes in eval-shop", "expected_skill": "setup-user-accounts", "should_not_trigger": "design-collections" }
+  ]
+}

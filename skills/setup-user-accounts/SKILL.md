@@ -1,6 +1,6 @@
 ---
 name: setup-user-accounts
-description: "Design user accounts and per-user data in a PocketBase instance on PocketBase Cloud: the users auth collection, collections each user owns, and API rules so users only see and change their own records. Use when the user wants sign-up and login, wants each user to have their own data (posts, notes, orders), or asks how to structure collections and rules for an app. Previews the change, backs up, and applies it only after approval."
+description: "Design user accounts and per-user data in a PocketBase instance on PocketBase Cloud: the users auth collection, collections each user owns, and API rules so users only see and change their own records. Use when the user wants sign-up and login, or wants each user to have their own data (posts, notes, orders). Previews the change, backs up, and applies it only after approval. Not for designing a whole app's data model: use design-collections."
 ---
 
 # Set up user accounts

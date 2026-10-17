@@ -60,7 +60,8 @@ Give the user the instance's address from `domain` (`https://<domain>`) and its 
 
 ### Step 6: Suggest the next step
 
-- User accounts and owned data: the **setup-user-accounts** skill.
+- The app's collections, fields and rules: the **design-collections** skill (the default next step).
+- User accounts and owned data only: the **setup-user-accounts** skill.
 - Code for their app: `search_docs` for the PocketBase JS SDK, auth, realtime or files.
 - Deploying a frontend or backend: `get_deploy_command`, which returns the `pbc` command to run on their machine.
 
