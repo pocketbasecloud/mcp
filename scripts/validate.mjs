@@ -21,14 +21,14 @@ const SKILL_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
  * The server's tools by what they do, as pbc-mcp's annotation table lists them (`npm run annotations:table` there).
  * Evals may name only these; a write tool needs the user's approval, which one headless turn can't give.
  */
-const READ_TOOLS = [
+export const READ_TOOLS = [
   "list_projects", "get_project", "get_plan", "list_regions", "get_overview", "list_resources", "get_resource",
   "diagnose_resource", "get_logs", "list_deployments", "get_deployment", "get_deploy_command", "list_hooks",
   "check_domain", "list_env_vars", "list_collections", "get_collection", "list_records", "get_record",
   "count_records", "get_request_logs", "list_backups", "list_crons", "check_security", "check_performance",
   "generate_types", "preview_collections", "search_docs",
 ];
-const WRITE_TOOLS = [
+export const WRITE_TOOLS = [
   "create_project", "create_pocketbase", "update_pocketbase_config", "set_continuous_backup", "deploy_hooks",
   "deploy_public", "add_domain", "verify_domain", "remove_domain", "set_env_vars", "delete_env_vars",
   "apply_collections", "update_api_rules", "create_record", "create_records", "upsert_records", "update_record",
@@ -181,7 +181,7 @@ export function validate(root) {
 }
 
 /** In an eval's must_not_call: every write tool of the server. */
-const ALL_WRITES = "@write";
+export const ALL_WRITES = "@write";
 
 /**
  * A skill's evals.json. A headless turn can't approve anything, so each case's first turn forbids every write tool
@@ -201,10 +201,16 @@ function checkEvals(root, skill, errors) {
   if (cases.length < 3) errors.push(`${file}: needs at least 3 cases, not ${cases.length}.`);
   if (!cases.some((c) => c.connection?.read_only === true)) errors.push(`${file}: needs a read-only case.`);
   const known = new Set([...READ_TOOLS, ...WRITE_TOOLS, ALL_WRITES]);
+  const fixturePath = join(root, "evals/fixture.json");
+  const fixtures = existsSync(fixturePath) ? JSON.parse(readFileSync(fixturePath, "utf8")).collections : {};
   const writes = new Set(WRITE_TOOLS);
   const required = (turn) => [...(turn.must_call ?? []), ...(turn.must_call_before ?? []).flat()];
   for (const c of cases) {
     const at = `${file} case "${c.id}"`;
+    if (!String(c.prompt ?? "").includes("{instance}")) errors.push(`${at}: the prompt must name {instance}, which the runner fills in.`);
+    for (const part of c.fixture ?? []) {
+      if (!(part in fixtures)) errors.push(`${at}: evals/fixture.json has no collection ${part}.`);
+    }
     for (const turn of [c, ...(c.approve ? [c.approve] : [])]) {
       for (const tool of [...required(turn), ...(turn.must_not_call ?? [])]) {
         if (!known.has(tool)) errors.push(`${at}: no tool is called ${tool}.`);
@@ -227,6 +233,7 @@ function checkEvals(root, skill, errors) {
   }
   const skills = new Set(readdirSync(join(root, "skills"), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name));
   for (const b of evals.boundaries ?? []) {
+    if (!String(b.prompt ?? "").includes("{instance}")) errors.push(`${file} boundary "${b.prompt}": the prompt must name {instance}.`);
     for (const name of [b.expected_skill, b.should_not_trigger]) {
       if (!skills.has(name)) errors.push(`${file} boundary "${b.prompt}": no skill is called ${name}.`);
     }

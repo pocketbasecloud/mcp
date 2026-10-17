@@ -11,3 +11,6 @@ Thumbs.db
 *.log
 
 node_modules/
+
+# Eval results: local, one CSV row per check, and the tool calls per run.
+evals/results/

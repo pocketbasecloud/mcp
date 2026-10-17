@@ -3,7 +3,7 @@
   "cases": [
     {
       "id": "full-check",
-      "prompt": "I'm launching the eval-shop app next week. Is it ready?",
+      "prompt": "I'm launching the app on {instance} next week. Is it ready?",
       "connection": { "read_only": false },
       "must_call": ["get_plan", "check_security", "check_performance", "list_backups", "get_resource", "diagnose_resource"],
       "must_not_call": ["@write"],
@@ -16,7 +16,7 @@
     },
     {
       "id": "read-only",
-      "prompt": "Run the launch checklist on eval-shop.",
+      "prompt": "Run the launch checklist on {instance}.",
       "connection": { "read_only": true },
       "must_call": ["check_security", "list_backups"],
       "must_not_call": ["@write"],
@@ -24,7 +24,7 @@
     },
     {
       "id": "what-did-i-forget",
-      "prompt": "What did I forget before launching eval-shop?",
+      "prompt": "What did I forget before launching {instance}?",
       "connection": { "read_only": false },
       "must_call": ["check_security", "get_resource"],
       "must_not_call": ["@write"],
@@ -35,9 +35,9 @@
     }
   ],
   "boundaries": [
-    { "prompt": "Check the API rules of eval-shop for security holes", "expected_skill": "review-security", "should_not_trigger": "launch-checklist" },
-    { "prompt": "Is eval-shop ready to launch?", "expected_skill": "launch-checklist", "should_not_trigger": "review-security" },
-    { "prompt": "Creating orders in eval-shop fails with 400", "expected_skill": "investigate-errors", "should_not_trigger": "launch-checklist" },
-    { "prompt": "My last deploy of eval-shop failed", "expected_skill": "debug-deploy", "should_not_trigger": "launch-checklist" }
+    { "prompt": "Check the API rules of {instance} for security holes", "expected_skill": "review-security", "should_not_trigger": "launch-checklist" },
+    { "prompt": "Is {instance} ready to launch?", "expected_skill": "launch-checklist", "should_not_trigger": "review-security" },
+    { "prompt": "Creating orders in {instance} fails with 400", "expected_skill": "investigate-errors", "should_not_trigger": "launch-checklist" },
+    { "prompt": "My last deploy of {instance} failed", "expected_skill": "debug-deploy", "should_not_trigger": "launch-checklist" }
   ]
 }

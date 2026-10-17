@@ -3,7 +3,7 @@
   "cases": [
     {
       "id": "recipes-app",
-      "prompt": "In eval-shop, I'm building a recipe app: recipes anyone can read and only their author edits, their ingredients, and ratings and favorites each user keeps to themselves.",
+      "prompt": "In {instance}, I'm building a recipe app: recipes anyone can read and only their author edits, their ingredients, and ratings and favorites each user keeps to themselves.",
       "connection": { "read_only": false },
       "must_call": ["list_collections", "get_collection", "preview_collections"],
       "must_not_call": ["@write"],
@@ -22,8 +22,9 @@
     },
     {
       "id": "blog-on-a-shop",
-      "prompt": "Add a blog to eval-shop.",
+      "prompt": "Add a blog to {instance}.",
       "connection": { "read_only": false },
+      "fixture": ["eval_products"],
       "must_call": ["list_collections"],
       "must_not_call": ["@write"],
       "answer_must": [
@@ -35,7 +36,7 @@
     },
     {
       "id": "read-only",
-      "prompt": "In eval-shop, design collections for a booking app: services and bookings.",
+      "prompt": "In {instance}, design collections for a booking app: services and bookings.",
       "connection": { "read_only": true },
       "must_not_call": ["@write"],
       "answer_must": [
@@ -46,7 +47,7 @@
     }
   ],
   "boundaries": [
-    { "prompt": "Make price a number in eval-shop", "expected_skill": "change-schema", "should_not_trigger": "design-collections" },
-    { "prompt": "Users should only see their own notes in eval-shop", "expected_skill": "setup-user-accounts", "should_not_trigger": "design-collections" }
+    { "prompt": "Make eval_products.price a number in {instance}", "expected_skill": "change-schema", "should_not_trigger": "design-collections" },
+    { "prompt": "Users should only see their own notes in {instance}", "expected_skill": "setup-user-accounts", "should_not_trigger": "design-collections" }
   ]
 }

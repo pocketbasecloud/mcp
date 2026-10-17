@@ -3,8 +3,9 @@
   "cases": [
     {
       "id": "rename-keeps-data",
-      "prompt": "In eval-shop, rename title to name in posts.",
+      "prompt": "In {instance}, rename title to name in eval_posts.",
       "connection": { "read_only": false },
+      "fixture": ["eval_posts"],
       "must_call": ["get_collection", "preview_collections"],
       "must_not_call": ["@write"],
       "answer_must": [
@@ -22,8 +23,9 @@
     },
     {
       "id": "text-to-number",
-      "prompt": "In eval-shop, make products.price a number; it is text now.",
+      "prompt": "In {instance}, make eval_products.price a number; it is text now.",
       "connection": { "read_only": false },
+      "fixture": ["eval_products"],
       "must_call": ["get_collection", "count_records", "preview_collections"],
       "must_not_call": ["@write"],
       "answer_must": [
@@ -41,8 +43,9 @@
     },
     {
       "id": "unique-slug",
-      "prompt": "In eval-shop, make posts.slug unique.",
+      "prompt": "In {instance}, make eval_posts.slug unique.",
       "connection": { "read_only": false },
+      "fixture": ["eval_posts"],
       "must_call": ["get_collection", "list_records"],
       "must_not_call": ["@write"],
       "answer_must": [
@@ -53,14 +56,15 @@
     },
     {
       "id": "read-only",
-      "prompt": "In eval-shop, make products.price a number.",
+      "prompt": "In {instance}, make eval_products.price a number.",
       "connection": { "read_only": true },
+      "fixture": ["eval_products"],
       "must_not_call": ["@write"],
       "answer_must": ["gives the plan and the collection JSON", "gives a pb_migrations file or says how to get one", "says how to reconnect with read and write"]
     }
   ],
   "boundaries": [
-    { "prompt": "Design collections for a booking app in eval-shop", "expected_skill": "design-collections", "should_not_trigger": "change-schema" },
-    { "prompt": "Rename title to name in eval-shop's posts", "expected_skill": "change-schema", "should_not_trigger": "design-collections" }
+    { "prompt": "Design collections for a booking app in {instance}", "expected_skill": "design-collections", "should_not_trigger": "change-schema" },
+    { "prompt": "Rename title to name in {instance}'s eval_posts", "expected_skill": "change-schema", "should_not_trigger": "design-collections" }
   ]
 }

@@ -120,3 +120,19 @@ test("an evals.json for another skill is caught", () => {
   });
   assert.match(validate(dir).join("\n"), /design-collections\/evals\.json.*skill/);
 });
+
+test("an eval prompt that does not name {instance} is caught, since the runner fills in its instance", () => {
+  const dir = copy();
+  edit(dir, "skills/change-schema/evals.json", (e) => {
+    e.cases[0].prompt = "In eval-shop, rename title to name in eval_posts.";
+  });
+  assert.match(validate(dir).join("\n"), /change-schema\/evals\.json case "rename-keeps-data".*\{instance\}/);
+});
+
+test("a case naming a fixture evals/fixture.json lacks is caught", () => {
+  const dir = copy();
+  edit(dir, "skills/change-schema/evals.json", (e) => {
+    e.cases[0].fixture = ["eval_pots"];
+  });
+  assert.match(validate(dir).join("\n"), /change-schema\/evals\.json case "rename-keeps-data".*eval_pots/);
+});

@@ -21,8 +21,10 @@ own records, then applies it safely: preview, backup, apply, security check, Typ
 
 ### Step 1: Read what exists
 
-Call `list_collections` with `resource`, then `get_collection` for the collections that matter (always `users` if
-it exists). Keep what is there: collections and fields not in the plan are left alone.
+Call `list_collections` with `resource`, then `get_collection` for the collections that matter (always `users` if it
+exists). Keep what is there: collections and fields not in the plan are left alone. Check that `apply_collections` is
+among your tools (a client may list it only by name, as a deferred tool): without it the connection is read-only. Say
+so at once, and plan to hand over what the Rules list instead of asking to apply.
 
 ### Step 2: Propose the plan
 
@@ -85,6 +87,8 @@ OAuth2 code.
 - Always back up before `apply_collections`, and tell the user the backup's name. It holds the data as it was:
   `restore_backup` brings the records back, but not the collections as they were, since the instance replays
   collection changes when it restarts.
-- If `apply_collections` is not available, the connection is read-only or has no database tools: give the user
-  the collection JSON and the `pb_migrations/` file from `preview_collections` with `migration: true`, or the JSON
-  to import with `pbc admin collections import <file>` or the admin UI's collections import.
+- If `apply_collections` is not available, the connection is read-only or has no database tools: give the user the
+  collection JSON and the `pb_migrations/` file from `preview_collections` with `migration: true`, or the JSON to
+  import with `pbc admin collections import <file>` or the admin UI's collections import. To apply it here, the user
+  connects again with write access: "Read and write" on PocketBase Cloud's sign-in page, or no `read_only=true` in
+  the server URL.
