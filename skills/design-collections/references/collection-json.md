@@ -27,6 +27,14 @@ collections per call.
   request; a name, or an id nothing has, is refused.
 - **`indexes`, when listed, replace the collection's indexes**: list the ones to keep too.
 
+## When apply_collections is refused
+
+A refused rule or field changes nothing. A refused **index** (PocketBase cannot build it: a `UNIQUE` over duplicate
+values, a column renamed away) leaves the running instance holding the refused definition in memory: creating
+records in that collection fails until it restarts (checked on PocketBase 0.40.5; a restart restores the stored
+definition, data intact). After a refusal, `get_collection`; if it shows the refused change, tell the user and see
+the `change-schema` skill's step 5.
+
 ## A full example
 
 The `booking` template (see `templates.md`): services anyone can browse and staff manage, bookings a signed-in

@@ -1,0 +1,54 @@
+{
+  "skill": "change-schema",
+  "cases": [
+    {
+      "id": "rename-keeps-data",
+      "prompt": "In eval-shop, rename title to name in posts.",
+      "connection": { "read_only": false },
+      "must_call": ["get_collection", "count_records"],
+      "must_call_before": [["preview_collections", "apply_collections"], ["create_backup", "apply_collections"]],
+      "must_not_call": ["delete_collection", "remove_fields"],
+      "answer_must": [
+        "sends the field with its id under the new name, so the data stays",
+        "rewrites the rules and indexes that name title in the same request",
+        "names the backup",
+        "says which app code and hooks must change"
+      ]
+    },
+    {
+      "id": "text-to-number",
+      "prompt": "In eval-shop, make products.price a number; it is text now.",
+      "connection": { "read_only": false },
+      "must_call": ["get_collection", "count_records", "upsert_records"],
+      "must_not_call": ["delete_collection"],
+      "answer_must": [
+        "never sends price with the number type in place of the text one",
+        "adds a new field, copies the values and proves the copy with counts",
+        "asks for approval again before removing the old field, and says restore_backup cannot bring it back"
+      ]
+    },
+    {
+      "id": "unique-slug",
+      "prompt": "In eval-shop, make posts.slug unique.",
+      "connection": { "read_only": false },
+      "must_call": ["get_collection", "list_records"],
+      "must_call_before": [["list_records", "apply_collections"]],
+      "answer_must": [
+        "looks for duplicate slugs before adding the index",
+        "keeps the existing indexes in the list",
+        "applies the index alone"
+      ]
+    },
+    {
+      "id": "read-only",
+      "prompt": "In eval-shop, make products.price a number.",
+      "connection": { "read_only": true },
+      "must_not_call": ["apply_collections", "upsert_records", "update_record", "remove_fields", "create_backup"],
+      "answer_must": ["gives the plan and the collection JSON", "gives a pb_migrations file or says how to get one", "says how to reconnect with read and write"]
+    }
+  ],
+  "boundaries": [
+    { "prompt": "Design collections for a booking app in eval-shop", "expected_skill": "design-collections", "should_not_trigger": "change-schema" },
+    { "prompt": "Rename title to name in eval-shop's posts", "expected_skill": "change-schema", "should_not_trigger": "design-collections" }
+  ]
+}
