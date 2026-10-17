@@ -4,27 +4,27 @@ The skills to add next, what each one does step by step, and the changes around 
 checked, and the tools the server is missing for some of them. Read [use-cases.md](use-cases.md) first for the map
 and the flows; [research.md](research.md) has the other vendors' skills these ideas borrow from.
 
-Every proposal uses only the 52 tools the server has today, unless it says *needs a new tool*.
+Every proposal uses only the 53 tools the server has today, unless it says *needs a new tool*.
 
 ## Priorities
 
 | Priority | Skill | Why now |
 |---|---|---|
-| 🟧 P0 | [`pocketbase` (router)](#pocketbase-router) | Small. Routes a request to the right skill, and holds the rules every skill shares: announce the target, approval of the exact change, retrieve docs before code. |
 | 🟧 P0 | [`design-collections`](#design-collections) | The usual first ask once an instance exists, and today only user accounts have a workflow. |
 | 🟧 P0 | [`change-schema`](#change-schema) | Changing a schema that holds data is where data gets lost; `apply_collections` refuses type changes and the assistant has to find the way around. |
 | 🟧 P0 | [`investigate-errors`](#investigate-errors) | "My app returns 403 / empty lists / 500" comes up constantly with PocketBase, and the cause is usually a rule. |
-| 🟧 P0 | [`backup-and-restore`](#backup-and-restore) | Every risky skill backs up; none says how to restore, check a backup or turn on continuous backup. |
 | 🟧 P0 | [`launch-checklist`](#launch-checklist) | One read-only pass over everything that should be true before real users arrive, handing each gap to the skill that fixes it. |
+| 🟧 P0 | [`backup-and-restore`](#backup-and-restore) | Every risky skill backs up; none says how to restore, what a restore brings back, or how to turn on continuous backup. Last of the five: the way back for a deleted collection or field is a new instance from the backup, which needs a server tool. |
+| ⏸ Deferred | [`pocketbase` (router)](#pocketbase-router) | Small. Routes a request to the right skill, and holds the rules every skill shares: announce the target, approval of the exact change, retrieve docs before code. Those rules go into the server instructions first (B4); the skill ships only if boundary evals show the task skills under-trigger without it. |
 | ⬜ P1 | `explain-instance`, `tune-performance`, `explore-data`, `import-data`, `connect-app`, `write-hooks`, `schedule-jobs`, `ship-app`, `custom-domain`, `manage-env` | [Short specs below](#p1-and-p2-in-short). |
 | ⬜ P2 | `teams-and-roles`, `setup-oauth-login`, `file-uploads`, `migrate-to-cloud` | [Short specs below](#p1-and-p2-in-short). Some need a new tool to be done well. |
 
 The four shipped skills stay; [changes to them](#changes-to-the-shipped-skills) are listed at the end.
 
 > [!NOTE]
-> `design-collections` and `change-schema` can ship today, but they are only reliable once `get_collection` returns
-> full field definitions ([first row of the server gaps](#tools-the-server-is-missing)). Until then they work for new
-> collections and relations to `users`, and ask the user before touching an existing field's options.
+> `get_collection` returns the collection's id and every option a field sets since pbc-mcp PR #13 (2026-10-17), so
+> `design-collections` and `change-schema` can ship as specified. The one P0 skill that waits on the server is
+> `backup-and-restore`: a restore into a new instance ([server gaps](#tools-the-server-is-missing)).
 
 ---
 
@@ -60,6 +60,12 @@ something starts with the router's step 0 (announce the target), so the specs do
 Kept under 80 lines; it holds no workflow of its own. *Borrowed from:* Convex's `convex` router and
 `convex-deploy-guard`, PlanetScale's approval contract, Cloudflare's "prefer retrieval over pre-training".
 
+**When:** not in 1.2.0. Do B4 first (the shared rules in the server's `INSTRUCTIONS`, which every client reads,
+skills or not), ship the task skills, and run the boundary evals. Add the router only if they show under-triggering:
+a skill described "Use whenever the user mentions PocketBase…" matches every prompt the task skills match, so it can
+steal their triggers, the risk [research.md](research.md#patterns-and-where-this-repo-uses-them) pattern 14's
+boundary tests exist to catch. If it ships, its description must send the model on to the task skill in one line.
+
 ### `design-collections`
 
 > Design the collections of a PocketBase instance on PocketBase Cloud from a description of the app: fields,
@@ -83,9 +89,10 @@ Kept under 80 lines; it holds no workflow of its own. *Borrowed from:* Convex's 
 5. **Preview.** `preview_collections` with the definitions; `migration: true` when the user keeps `pb_migrations/`.
    Show the diff and ask.
 6. **Back up, then apply.** `create_backup` (`before-<short-name>.zip`), then `apply_collections` (up to 20
-   collections per call). A relation field names its target by collection **id**: give each new collection an `id`
-   in the definitions so relations in the same call can point at it; the default `users` collection's id is
-   `_pb_users_auth_`.
+   collections per call). A relation field names its target by collection **id**: `get_collection` gives an
+   existing collection's id; give each new collection an `id` in the definitions so relations in the same call can
+   point at it; the default `users` collection's id is `_pb_users_auth_`. Preview and apply refuse a relation whose
+   `collectionId` is neither an existing collection's id nor the id of one created in the same request.
 7. **Check.** `check_security`; fix any `critical` or `warning` with the user, as `review-security` does.
 8. **Types.** `generate_types`; tell the user where to save the file.
 9. **Next:** `setup-user-accounts` if there are users but no owned data yet, `import-data` for seed data,
@@ -103,7 +110,8 @@ description should end with "Not for changing collections that already hold data
 
 **Bundled references** (read only when needed): `references/field-types.md` (types and their options),
 `references/rules.md` (rule cookbook, shared with the other data skills), `references/collection-json.md` (the
-import format, with one full example).
+import format, with one full example), and, once pbc-mcp PR #2's template layout is agreed, the collection
+definitions of its templates (waitlist, booking, shop, blog…) as worked examples in `references/templates.md`.
 
 **Evals**
 
@@ -130,11 +138,16 @@ import format, with one full example).
    | Change | Safe path |
    |---|---|
    | Add a field, add an index, change rules | One `apply_collections`. A new **required** field on a non-empty collection needs a default first: add it optional, fill it, then make it required. An `indexes` list **replaces** the current one: send the existing indexes plus the new one. |
-   | Rename a field | `apply_collections` matches fields by name, so a new name is a new, empty field and the old one stays. Either rename it in the admin UI (keeps the data), or add the new field, copy, check, and remove the old one. Then fix every rule, index and hook that names it. |
-   | Change a field's type | `apply_collections` refuses it. Add a new field with the new type, copy the values (`update_record` for a few records; a one-off hook or migration for many), check with `count_records`, then remove the old field with `remove_fields` (opt-in `database_admin`). |
+   | Rename a field | One `apply_collections`, sending the field **with its `id`** (from `get_collection`) under the new name: PocketBase matches a field by id first, so the data stays (checked on PocketBase 0.40.4). Without the id, a new name is a new, empty field and the old one stays. Then fix every rule, index and hook that names it. |
+   | Change a field's type | `apply_collections` refuses it. Expand and contract: add a new field with the new type, copy the values (`update_record` for a few records; `upsert_records` with each record's `id` and the new value, 100 per call, for hundreds; a one-off hook or migration for more), check with `count_records`, then remove the old field with `remove_fields` (opt-in `database_admin`). |
    | Add a `UNIQUE` index | Look for duplicates first with `list_records` sorted by that field; the index fails while any exist. |
    | Make a relation required | Count records where it is empty first (`count_records` with `field = ''`). |
    | Remove a field or collection | `remove_fields` / `delete_collection` (opt-in, back up first, name typed again). Check first that no rule, index, relation or hook still uses it. |
+
+   Two things hold for every row. A listed field **replaces the stored one whole**: options left out go back to
+   their defaults, so send each changed field in full, as `get_collection` returned it; the preview lists what
+   would reset as `→ default` with a warning. And preview and apply **refuse a relation** whose `collectionId` is
+   not the id of an existing collection, or of one created in the same request with its id.
 
 3. **Rehearse when it's big** (optional, if the plan allows another instance): apply the same definitions to a
    staging instance first (`create_pocketbase`, or one the user has) to see that the import is accepted. It holds
@@ -150,6 +163,8 @@ import format, with one full example).
 **Rules**
 
 - A step that loses data (removing a field, a type change) needs its own approval, after the copy is checked.
+  `remove_fields` backs up first, but `restore_backup` can't bring the field back (the instance replays the
+  deletion when it restarts): say so, and that the backup can seed a new instance.
 - Never fill fields by hand over more than a few dozen records; propose a hook or migration and say why.
 - If `database_admin` is off, explain the last step and that the user can add `database_admin` to `features` for
   this one change.
@@ -157,12 +172,13 @@ import format, with one full example).
 *Borrowed from:* expand-and-contract (Netlify's database rules, Convex's "optional, backfill, tighten"), Neon's
 prepare/complete on a temporary branch.
 
-**Bundled references:** `references/rename-and-retype.md` (worked JSON for a rename and a type change),
-`references/rules.md`.
+**Bundled references:** `references/rename-and-retype.md` (worked JSON for a rename with the field's id, and
+for a type change), `references/rules.md`.
 
-**Evals:** "Rename `title` to `name` in `posts`" keeps the data and doesn't leave an empty `name` beside a full
-`title`; "make `price` a number" (it is text) never calls `apply_collections` with the new type on the old field;
-"add a unique index on `slug`" checks for duplicates first and keeps the existing indexes.
+**Evals:** "Rename `title` to `name` in `posts`" sends the field with its id under the new name in one
+`apply_collections`, and doesn't leave an empty `name` beside a full `title`; "make `price` a number" (it is text)
+never calls `apply_collections` with the new type on the old field; "add a unique index on `slug`" checks for
+duplicates first and keeps the existing indexes.
 
 ---
 
@@ -176,7 +192,10 @@ prepare/complete on a temporary branch.
 **Workflow**
 
 1. **Health first.** `diagnose_resource` (`kind: "pocketbase"`). If the verdict points at a failed deploy or a down
-   instance, hand off to `debug-deploy`; at a domain, to `custom-domain`.
+   instance, hand off to `debug-deploy`; at a domain, to `custom-domain`. A **warning `instance_unreachable`**
+   means the instance runs but PocketBase Cloud can't reach its API, so every database tool fails on it although
+   nothing in the app is wrong: retry in a few minutes; if it lasts, tell PocketBase Cloud support with the
+   instance id, and stop there.
 2. **Find the failing requests.** `get_request_logs` with `filter` such as `data.status >= 400`, or narrowed to the
    route the user named (`data.url ~ '/api/collections/posts'`). Group by status and route.
 3. **Explain by status:**
@@ -212,9 +231,10 @@ Until then the skill reads the rule and reasons about it, and says so.
 ### `backup-and-restore`
 
 > Protect the data of a PocketBase instance on PocketBase Cloud: make and list backups, turn on continuous backup,
-> and restore a backup with a way back. Use when the user asks about backups, wants to undo a change, lost or broke
-> data, wants a restore point before a risky change, or asks how to recover. Restores only after the user approves
-> the exact backup, and backs up the current data first so the restore can be undone.
+> and restore a backup, saying what comes back. Use when the user asks about backups, wants to undo a change to
+> records, lost or broke data, wants a restore point before a risky change, or asks how to recover. Restores only
+> after the user approves the exact backup, backs up the current data first, and says what a restore cannot undo:
+> a deleted collection or field.
 
 **Workflow**
 
@@ -225,10 +245,18 @@ Until then the skill reads the rule and reasons about it, and says so.
   every restore point; say so and require `confirm: true` only after the user agrees to that.
 - **Restore** (needs `database_admin`):
   1. Ask what went wrong and when, then pick the newest backup from **before** that moment from `list_backups`.
-  2. Say what will be lost: everything written after the backup.
+  2. Say what will be lost: everything written after the backup. And what will **not** come back: records and
+     files return as they were, but collection changes made since the backup (collections or fields created,
+     changed or deleted) do not revert. PocketBase Cloud instances run with `--automigrate=true` and keep
+     `pb_migrations` outside `pb_data`, so the instance replays those migrations when it restarts after the
+     restore, and a deleted collection or field is deleted again. For those, the way back is a **new instance
+     from the backup**: `pbc pocketbase create <name> --backup <file>` on the user's machine today, from the
+     assistant once the clone tool exists.
   3. On approval, `restore_backup` with `confirm: true` (keeping `backupFirst: true`), and give the user the name
-     of the backup of the current data, the way back.
-  4. The instance restarts. Wait, then `list_collections` and `count_records` on the collection that mattered.
+     of the backup of the current data: the way back for records, and the seed for a new instance if a collection
+     has to come back.
+  4. The instance restarts. Wait, then `list_collections`, `get_collection` and `count_records` on the collection
+     that mattered.
 - **Clean up:** `delete_backup` only for a backup the user names, never in bulk.
 
 **Rules**
@@ -236,9 +264,16 @@ Until then the skill reads the rule and reasons about it, and says so.
 - Never restore without the user's approval of that exact backup name.
 - A backup restores the whole instance, never one collection or record: say so before the user picks one.
 - Backups can't be downloaded through the server; for an off-site copy, point to the portal or `pbc`.
+- `delete_collection` and `remove_fields` answer with no `undo` (since pbc-mcp PR #14): say so before the user
+  approves one, and that the way back is a new instance from the backup. `truncate_collection` still has one,
+  since it removes records only.
 - "A backup you have never restored is a hope" (Convex): offer a **restore drill** once one is possible, restoring
-  into a throwaway copy and comparing `count_records` with the source. It needs `clone_pocketbase`
-  ([server gaps](#tools-the-server-is-missing)); until then, say that backups exist but are untested.
+  into a throwaway copy and comparing `count_records` with the source. Until then, say that backups exist but are
+  untested.
+
+**Blocked on a server tool:** a restore into a new instance (`clone_pocketbase`,
+[server gaps](#tools-the-server-is-missing)). It is both the restore drill and the only way back for a deleted
+collection or field, which is why this skill ships last of the P0 five.
 
 ---
 
@@ -257,7 +292,7 @@ Until then the skill reads the rule and reasons about it, and says so.
 | Rules | `check_security` | No `critical`; every `warning` is intended and explained. |
 | Speed | `check_performance` | No slow route that a missing index explains. |
 | Backups | `list_backups`, `get_resource` | A recent backup exists; continuous backup on for a paid plan. |
-| Runtime | — | Dev mode off: it prints every SQL statement to the logs and slows the instance. No tool reads it today, so propose `update_pocketbase_config` `dev: false` (it returns the settings in force) or ask. (*A new tool could read this.*) |
+| Runtime | — | Dev mode off: it prints every SQL statement to the logs and slows the instance. **Not assessed until B2** (`get_resource` returns the runtime flags): no tool reads it today, and this skill never calls a write tool, so list it under *Not checked* and ask the user to look in the portal. |
 | Health | `diagnose_resource` for every resource | `healthy`; no failed deploy in the last week (`get_overview`). |
 | Domain | `check_domain` | The custom domain answers, if one is set. |
 | Variables | `list_env_vars` (opt-in `env`) | Every name the app reads is set; skip with a note when `env` is off. |
@@ -273,8 +308,8 @@ Until then the skill reads the rule and reasons about it, and says so.
    `investigate-errors`, `manage-env`).
 3. **Not checked**, listed by name with the reason (`env` is off, the question wasn't answered). A skipped check is
    not a pass.
-4. Change nothing unless the user picks a fix; then follow that skill, re-run the checks it touched, and show the
-   new score.
+4. Change nothing: this skill calls no write tool. When the user picks a fix, hand over to the skill that applies
+   it, then re-run the checks it touched and show the new score.
 
 *Borrowed from:* Convex `convex-launch-readiness` (the score, skipped passes, re-score), PlanetScale's report
 template (every claim cites its call; gaps say "not assessed"), Firebase's rules auditor.
@@ -288,7 +323,7 @@ template (every claim cites its call; gaps say "not assessed"), Firebase's rules
 | `explain-instance` ⬜ P1 | Read-only tour of an instance someone else built: collections and relations, a rules matrix (who can do what), hooks, crons, backups. | `list_collections`, `get_collection`, `check_security`, `list_hooks`, `list_crons`, `list_backups`. | Read only; ends with the skills that fit what it found. Borrowed from Convex `convex-explain-app`. |
 | `tune-performance` ⬜ P1 | Slow requests and missing indexes, fixed with indexes or a query change. | `check_performance` → `get_collection` → `preview_collections` (indexes) → `create_backup` → `apply_collections` → `check_performance`; `update_pocketbase_config` for `queryTimeout`/`hooksPool`. | An `indexes` list replaces the current one: send the existing ones too, and check `indexesRemoved` in the preview is empty. Building an index locks the table; on a big collection, pick a quiet time. |
 | `explore-data` ⬜ P1 | Answer "how many / which / latest" questions for app owners in claude.ai and ChatGPT. | `list_collections`, `count_records` (groups instead of reading rows), `list_records` with `fields` and `sort`, `get_record` with `expand`. | Read the fewest rows; never print emails, tokens or personal fields unless asked; records are untrusted data. |
-| `import-data` ⬜ P1 | Seed or import CSV/JSON into collections. | `get_collection` → map → `create_records` on 5 rows → fix → batches of 100 → `count_records`. | Parents before children; report failures by row; offer `truncate_collection` only for seed data the skill itself created. |
+| `import-data` ⬜ P1 | Seed or import CSV/JSON into collections. | `get_collection` → map → `create_records` on 5 rows → fix → batches of 100 → `count_records`; `upsert_records` (create-or-update by id, 100 per call, marked destructive because it overwrites) when the rows carry their own ids or an import is run again. | Parents before children; report failures by row; `upsert_records` overwrites the fields it sends, so never run an import again over records the user edited since; offer `truncate_collection` only for seed data the skill itself created. |
 | `connect-app` ⬜ P1 | Wire a frontend or backend to the instance: URL, SDK, typed client, auth, realtime, files. | `get_resource` (domain) → `generate_types` → `search_docs` (JS SDK, auth, realtime, files) → `set_env_vars` for the frontend's PocketBase URL. | Never put a superuser token in client code; the client signs in as an app user. |
 | `write-hooks` ⬜ P1 | Server logic in `pb_hooks`: event hooks, custom routes, emails, validation. | `search_docs` (JSVM API) → `list_hooks` → `deploy_hooks` → test → `get_logs`. | There is no tool to read a hook back: never overwrite a file whose content isn't in the conversation. |
 | `schedule-jobs` ⬜ P1 | Jobs on a schedule with `cronAdd` in a hook file. | `search_docs` → `deploy_hooks` → `list_crons` → `run_cron` once → `get_logs`. | `run_cron` runs real code: say what the job changes before running it. |
@@ -322,12 +357,17 @@ The rule cookbook is needed by four skills. Skills can't share files across fold
 source (`docs/skill-design/shared/rules.md`) and copy it into each skill with a small script that `npm run
 validate` checks for drift.
 
+Skills stay in this repository, next to the manifests that install them (decided 2026-10-17 with pbc-mcp PR #2:
+no separate `agent-kit` repository). The server repository keeps the tools, the prompts and `tools.json`; this one
+keeps the skills, their references and their evals.
+
 ### Check the tool names in CI
 
 `CONTRIBUTING.md` says a skill must use only tools the server offers; nothing checks it. Add `tools.json` (the
 tool names and groups, generated in the server repo by the same catalog as `npm run annotations:table`) and make
-`validate.mjs` fail on a backticked `snake_case` name in a skill that isn't in it. The 52 names today are listed by
-group in the server repository's README.
+`validate.mjs` fail on a backticked `snake_case` name in a skill that isn't in it. The 53 names today are listed by
+group in the server repository's README. This repo's CI fetches the file from the server repo at a pinned tag, so
+the copy here can't go stale unnoticed ([implementation.md A1](implementation.md#a1-in-code)).
 
 ### Descriptions that trigger, and don't overlap
 
@@ -374,11 +414,14 @@ guides, so a client without skills can read them on demand.
 ### Release
 
 Skills reach Claude Code and Cursor users when the marketplace updates, so a skills-only release still bumps the
-version in every manifest (see [publishing.md](../publishing.md)). Suggested order:
+version in every manifest (see [publishing.md](../publishing.md)). Every bump is a new MCP Registry version and a
+Cursor Marketplace re-review, so the P0 skills ship together, not one by one. Server-side, B4 (the shared rules in
+`INSTRUCTIONS`) lands before 1.2.0; pbc-mcp PR #2's `search_docs` v2 and `install_template` follow in their own
+releases ([README](README.md#relationship-to-pbc-mcp-pr-2-decided-2026-10-17)). Suggested order:
 
 | Version | Content |
 |---|---|
-| 1.2.0 | P0 skills (router included), their prompts in the server, `tools.json` check, evals and boundary tests |
+| 1.2.0 | The five P0 skills together, their prompts in the server, `tools.json` check, evals and boundary tests; the router only if the boundary evals call for it |
 | 1.3.0 | P1 build and ship skills: `connect-app`, `write-hooks`, `schedule-jobs`, `ship-app`, `custom-domain`, `manage-env` |
 | 1.4.0 | P1 data skills and P2: `explain-instance`, `tune-performance`, `explore-data`, `import-data`, then the P2 ones as their tools land |
 
@@ -387,7 +430,7 @@ version in every manifest (see [publishing.md](../publishing.md)). Suggested ord
 | Skill | Change |
 |---|---|
 | `getting-started` | End with `design-collections` as the default next step, `setup-user-accounts` when the app has sign-in. |
-| `setup-user-accounts` | Reuse the rule cookbook from `references/rules.md`; mention OAuth sign-in (`setup-oauth-login`) and email (SMTP) as follow-ups. |
+| `setup-user-accounts` | Reuse the rule cookbook from `references/rules.md`; mention OAuth sign-in (`setup-oauth-login`) and email (SMTP) as follow-ups. When it changes an existing field, send it in full as `get_collection` returns it, since `apply_collections` replaces a listed field whole. |
 | `review-security` | Add the `unprotected_files` and `open_signup` findings to the explanations; for a team app, point to `teams-and-roles`. |
 | `debug-deploy` | When the build succeeded but requests fail, hand off to `investigate-errors` instead of repeating its steps. |
 
@@ -397,10 +440,10 @@ Found while writing the specs. They belong in the server repository; listed here
 
 | Tool | For | Why |
 |---|---|---|
-| Full definitions from `get_collection` (change) | `design-collections`, `change-schema`, `file-uploads`, `setup-oauth-login` | It returns each field's name, type and `required` only: no options (a relation's target, `select` values, sizes, `protected`), no collection id, no auth options. A skill can't relate to an existing collection other than `users`, or change one option without guessing the others. **Blocks P0**; a `full: true` flag would do. |
+| ~~Full definitions from `get_collection`~~ **Done** (pbc-mcp PR #13, 2026-10-17) | `design-collections`, `change-schema`, `file-uploads`, `setup-oauth-login` | The answer now has the collection's id and, per field, its id and every option it sets (defaults left out), so a skill can relate to any existing collection, rename a field by its id and change one option without guessing the others. No `full: true` flag was needed. Still missing: the auth options of an auth collection. |
+| `clone_pocketbase` (write) | `backup-and-restore`, `change-schema` | **Blocks P0** (`backup-and-restore`). A new instance from a backup of another; `pbc pocketbase create <name> --backup <file>` does it from the user's machine today. It is the only way back for a deleted collection or field, since `restore_backup` can't undo those (the instance replays its `pb_migrations` on restart), the restore drill, and the branch workflow other database platforms offer for trying a migration with data. |
 | `test_rule` (read) | `investigate-errors`, `review-security`, `teams-and-roles` | Run a list or view **as a given user** (PocketBase superusers can impersonate an auth record) and show what that user gets. Turns "I think the rule hides it" into proof. |
 | `get_hook` (read) | `write-hooks`, `schedule-jobs` | Read a hook file's content, so an edit doesn't overwrite code the conversation never saw. |
 | Version and runtime settings in `get_resource` (change) | `launch-checklist`, `write-hooks`, `investigate-errors` | The PocketBase version (the hook API changed in 0.23, and skills should pick docs for the version that runs) and the runtime flags (dev mode, hooks pool, query timeout); today they are only returned after `update_pocketbase_config` changes them. |
 | `get_settings_summary` (read) | `launch-checklist`, `setup-user-accounts` | Whether SMTP is set, the app URL used in emails, rate limits, the backup schedule, file storage: booleans and non-secret values only. |
-| `clone_pocketbase` (write) | `change-schema`, `backup-and-restore` | A copy of an instance from a backup, to try a migration or restore one collection without touching production — the branch workflow other database platforms offer. |
 | `upload_file` (write) | `file-uploads`, `import-data` | Records with files can't be created today: `create_record` takes JSON only. |

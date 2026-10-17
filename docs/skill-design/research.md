@@ -28,9 +28,9 @@ are marked *(unverified)*.
 
 | # | Pattern | Seen at | Here |
 |---|---|---|---|
-| 1 | **A thin router skill plus short task skills.** One overview skill routes; task skills stay 30–150 lines. | Convex, Cloudflare, Neon, Railway | New P0 `pocketbase` router in [roadmap.md](roadmap.md#pocketbase-router). The shipped skills are already short. |
+| 1 | **A thin router skill plus short task skills.** One overview skill routes; task skills stay 30–150 lines. | Convex, Cloudflare, Neon, Railway | A `pocketbase` router is specified in [roadmap.md](roadmap.md#pocketbase-router) but deferred behind B4: a skill that triggers on every mention of PocketBase can steal the task skills' prompts, the risk pattern 14's boundary tests exist to catch. The shipped skills are already short. |
 | 2 | **Target guard as step 0.** Resolve the project and instance, announce them in one line, then act. A "read-only" request holds for the session. | Convex | Added to the guardrail ([use-cases.md §3](use-cases.md#3-the-guardrail-every-skill-follows)) and to every P0 spec. |
-| 3 | **An approval names the change.** Approval is for one stated action on one target; a vague yes doesn't cover a destructive step. | PlanetScale | Already the rule ("approval of that exact change"); made explicit in the router. |
+| 3 | **An approval names the change.** Approval is for one stated action on one target; a vague yes doesn't cover a destructive step. | PlanetScale | Already the rule ("approval of that exact change"); made explicit in the server instructions (B4) and in the router spec. |
 | 4 | **Rehearse, then promote.** Preview the diff, try the change somewhere disposable, then apply. | Neon, Convex, Netlify | `preview_collections` today; an optional schema rehearsal on a staging instance in `change-schema`; `clone_pocketbase` proposed for rehearsals with data. |
 | 5 | **Back up, then prove the restore.** A drill restores into a throwaway copy and compares counts. | Convex | `backup-and-restore`. A drill needs `clone_pocketbase` ([server gaps](roadmap.md#tools-the-server-is-missing)). |
 | 6 | **Verification is part of done.** Re-run the check after the change; don't report success before it passes. | Supabase, Render, Vercel | Step "Check" in every spec; "verify" in the guardrail. |
@@ -48,11 +48,11 @@ are marked *(unverified)*.
 ## What not to copy
 
 - **A tool catalog behind search-and-call tools** (Sentry, Appwrite): it pays off with hundreds of operations; with
-  52 tools in groups, direct tools are clearer and keep the annotations meaningful.
+  53 tools in groups, direct tools are clearer and keep the annotations meaningful.
 - **Autonomous modes** (PlanetScale's auto-production, Convex's self-heal): PocketBase Cloud's promise is that
   every change waits for the user. Keep it.
-- **One giant skill** (Railway's 377-line router, Supabase's catch-all): fine for one product surface, but it blurs
-  triggering. Our use cases are distinct enough for task skills.
+- **One giant skill** (Railway's 377-line router *(unverified)*, Supabase's catch-all): fine for one product
+  surface, but it blurs triggering. Our use cases are distinct enough for task skills.
 - **Hooks that auto-approve commands** (Railway): this repo has no local commands to approve; `pbc` runs on the
   user's machine under their own control.
 
@@ -67,4 +67,6 @@ Read in source: `supabase/agent-skills`, `supabase-community/supabase-mcp`, `sup
 `tursodatabase/agent-skills`, `mongodb/agent-skills`, `anthropics/skills`, `anthropics/claude-plugins-official`.
 
 *(Unverified)*: Firebase's post on eval-driven development of agent skills (August 2026) and the contents of
-Appwrite's Claude plugin; neither could be read from here.
+Appwrite's Claude plugin; neither could be read from here. Also the length of Railway's router skill: the
+`railwayapp/railway-skills` repository has no `skills/` folder at its root, so the 377-line figure could not be
+checked against a file.

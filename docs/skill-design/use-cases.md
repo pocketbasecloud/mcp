@@ -8,7 +8,7 @@ Legend used in every diagram:
 | Mark | Meaning |
 |---|---|
 | ✅ | A skill that ships today in [`skills/`](../../skills/) |
-| 🟧 **P0** | Proposed next: frequent, or risky without guidance, and every tool it needs exists |
+| 🟧 **P0** | Proposed next: frequent, or risky without guidance, and every tool it needs exists (`backup-and-restore` is the exception: its way back for a deleted collection or field needs a server tool, so it ships last) |
 | ⬜ P1 / P2 | Proposed later |
 
 ## Actors
@@ -23,7 +23,8 @@ Legend used in every diagram:
 ## 1. Use-case map
 
 Every use case grouped by the stage of an app's life. A skill name under a use case is the skill that carries it.
-The `pocketbase` router skill (P0) isn't a use case of its own: it routes to these and holds the rules they share.
+The `pocketbase` router skill (proposed, deferred behind B4) isn't a use case of its own: it would route to these;
+the rules they share go into the server instructions first.
 
 ```mermaid
 flowchart LR
@@ -73,7 +74,7 @@ flowchart LR
     end
 
     subgraph protect["7 · Protect"]
-      r1(["Backups, restore<br/>with undo<br/><b>backup-and-restore</b> 🟧 P0"])
+      r1(["Backups and restore,<br/>continuous backup<br/><b>backup-and-restore</b> 🟧 P0"])
     end
 
     start ~~~ model ~~~ secure ~~~ build ~~~ ship ~~~ operate ~~~ protect
@@ -165,8 +166,15 @@ flowchart TD
   risky -->|no| apply
   backup --> apply["Apply<br/>confirm: true only now"]
   apply --> verify["Verify<br/>check_security · check_performance ·<br/>count_records · get_logs"]
-  verify --> next["Report what changed,<br/>how to undo, and the next skill"]
+  verify --> next["Report what changed,<br/>the way back, and the next skill"]
 ```
+
+"The way back" is not always `restore_backup`. PocketBase Cloud instances run with `--automigrate=true` and keep
+`pb_migrations` outside `pb_data`, so a restore brings records and files back but replays every collection change
+made since the backup when the instance restarts: a deleted collection or field is deleted again.
+`delete_collection` and `remove_fields` therefore answer with no `undo` (pbc-mcp PR #14); `truncate_collection`
+still does, since it removes records only. For the two schema deletions the way back is the backup restored into a
+**new** instance, `pbc pocketbase create <name> --backup <file>`, and a skill says so before the user approves.
 
 ## 4. Key flows
 
@@ -188,7 +196,7 @@ sequenceDiagram
   A->>M: list_collections, get_collection(posts)
   M->>P: read schema
   P-->>A: fields, rules, indexes
-  Note over A: price is text today: a type change.<br/>apply_collections refuses it, so plan<br/>add price_num → copy → remove price.<br/>indexes: send the current ones too
+  Note over A: price is text today: a type change.<br/>apply_collections refuses it, so plan<br/>add price_num → copy → remove price.<br/>indexes: send the current ones too,<br/>and a changed field in full, with its id
   A->>M: preview_collections(defs, migration: true)
   M-->>A: diff + pb_migrations file
   A->>U: The diff, the data step, the migration file. Go?
@@ -196,6 +204,7 @@ sequenceDiagram
   A->>M: create_backup(before-posts-tags.zip)
   A->>M: apply_collections(defs)
   M->>P: import, deleteMissing false
+  A->>M: upsert_records(posts, id + price_num, 100 per call) to copy the values
   A->>M: count_records(posts, groups) to check the copy
   A->>M: check_security, then generate_types
   A->>U: Done. Backup name, migration file to commit, new types
@@ -205,7 +214,8 @@ sequenceDiagram
 
 `investigate-errors` reads from the outside in: the platform, then the instance, then the request, then the rule or
 hook behind it. PocketBase hides records a rule filters out instead of refusing, so "fewer items than expected" and
-"404 on a record that exists" are rule problems, not data problems.
+"404 on a record that exists" are rule problems, not data problems. A warning `instance_unreachable` is the one
+case where nothing in the app is wrong: the platform's link to the instance is.
 
 ```mermaid
 flowchart TD
@@ -213,7 +223,8 @@ flowchart TD
   dr --> v{"verdict"}
   v -->|instance down or<br/>last deploy failed| dd["debug-deploy ✅"]
   v -->|domain broken| dom["custom-domain ⬜"]
-  v -->|healthy or warning| rl["get_request_logs<br/>filter data.status >= 400"]
+  v -->|"warning instance_unreachable"| unr["PocketBase Cloud can't reach the instance<br/>→ retry, then support with the instance id"]
+  v -->|healthy or other warning| rl["get_request_logs<br/>filter data.status >= 400"]
   rl --> code{"status"}
   code -->|"400"| f400["Validation: required field,<br/>wrong type, unique index<br/>→ get_collection, show the field"]
   code -->|"401 / 403"| f403["Not signed in, or the rule<br/>is null: superusers only<br/>→ review-security ✅"]
@@ -265,15 +276,16 @@ flowchart LR
 
 ### 4.5 Launch checklist
 
-`launch-checklist` is read-only until the user picks fixes; each failed check hands off to the skill that fixes it.
+`launch-checklist` calls no write tool; each failed check hands off to the skill that fixes it, and that skill
+applies the fix.
 
 ```mermaid
 flowchart TD
   lc["launch-checklist 🟧"] --> plan["get_plan<br/>paid plan, not a trial ending at launch"]
   lc --> sec["check_security<br/>no critical, warnings explained"]
   lc --> perf["check_performance<br/>no slow route without an index"]
-  lc --> bk["list_backups + continuous backup<br/>a backup exists and restores"]
-  lc --> dev["dev mode off<br/>ask, or update_pocketbase_config"]
+  lc --> bk["list_backups + continuous backup<br/>a recent backup exists"]
+  lc --> dev["dev mode off<br/>not assessed until B2: ask"]
   lc --> dom["check_domain<br/>custom domain answers"]
   lc --> diag["diagnose_resource<br/>healthy, no recent failed deploy"]
   lc --> env["list_env_vars<br/>every name the app reads is set"]
@@ -291,7 +303,7 @@ to do when they are missing.
 
 | Use case | Skill | account | resources | deploy | domains | database | docs | env | database_admin |
 |---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| Route and shared rules | pocketbase (router) 🟧 | ○ | ○ | | | | ● | | |
+| Route and shared rules | pocketbase (router), deferred | ○ | ○ | | | | ● | | |
 | First project and instance | getting-started ✅ | ● | ● | ○ | | | ○ | | |
 | Fix a failed deploy | debug-deploy ✅ | ○ | | ● | | | | | |
 | Users and owned data | setup-user-accounts ✅ | | | | | ● | ○ | | |
