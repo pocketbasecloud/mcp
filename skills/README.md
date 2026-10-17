@@ -17,3 +17,6 @@ They follow the prompts the server itself offers (`getting_started`, `debug_depl
 All of them target `https://mcp.pocketbasecloud.com/mcp` and use only its tools. Every step that changes something
 waits for the user's approval. When a tool a skill needs is missing, the connection is read-only or limited by its
 options, and the skill says what to do instead.
+
+Plans for the next skills, with the use cases and the research behind them, are in
+[`docs/skill-design/`](../docs/skill-design/).
