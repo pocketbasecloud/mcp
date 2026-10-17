@@ -147,10 +147,10 @@ test("a first turn that must call a write tool with given arguments is caught to
 
 test("a candidate eval is held to the same rules as a skill's", () => {
   const dir = copy();
-  edit(dir, "evals/candidates/import-data.json", (e) => {
-    e.cases[0].must_call.push("create_records");
+  edit(dir, "evals/candidates/tune-performance.json", (e) => {
+    e.cases[0].must_call.push("apply_collections");
   });
-  assert.match(validate(dir).join("\n"), /evals\/candidates\/import-data\.json case "csv-with-a-bad-row".*create_records.*approve/);
+  assert.match(validate(dir).join("\n"), /evals\/candidates\/tune-performance\.json case "add-index-keeps-others".*apply_collections.*approve/);
 });
 
 test("a candidate eval named after another file is caught", () => {
