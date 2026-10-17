@@ -416,6 +416,50 @@
           "body": "Fine, but pricier than elsewhere."
         }
       ]
+    },
+    "eval_notes": {
+      "note": "Every rule open to everyone: anyone, signed in or not, can change and delete every note (check_security: critical).",
+      "definition": {
+        "id": "evalnotes000001",
+        "name": "eval_notes",
+        "type": "base",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": "",
+        "updateRule": "",
+        "deleteRule": "",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "relation",
+            "collectionId": "evalmembers0001",
+            "maxSelect": 1
+          },
+          {
+            "name": "title",
+            "type": "text",
+            "required": true,
+            "max": 200
+          },
+          {
+            "name": "body",
+            "type": "text",
+            "max": 5000
+          }
+        ]
+      },
+      "records": [
+        {
+          "owner": "{eval_members.0}",
+          "title": "Shopping list",
+          "body": "Milk, bread"
+        },
+        {
+          "owner": "{eval_members.1}",
+          "title": "Ideas",
+          "body": "A garden blog"
+        }
+      ]
     }
   },
   "hooks": {

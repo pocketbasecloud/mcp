@@ -1,0 +1,50 @@
+{
+  "skill": "review-security",
+  "cases": [
+    {
+      "id": "open-notes",
+      "prompt": "Is the data in {instance} safe?",
+      "connection": { "read_only": false },
+      "fixture": ["eval_members", "eval_notes"],
+      "must_call": ["check_security"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "says that anyone, without signing in, can change and delete every note in eval_notes",
+        "proposes the exact rules, limited to each note's owner",
+        "asks for approval before changing a rule"
+      ],
+      "approve": {
+        "reply": "Yes, apply the fixes for eval_notes.",
+        "must_call": ["update_api_rules"],
+        "must_call_matching": [["update_api_rules", "eval_notes"]],
+        "must_call_before": [["update_api_rules", "check_security"]],
+        "must_not_call": ["apply_collections", "delete_collection", "remove_fields"]
+      }
+    },
+    {
+      "id": "public-catalog-is-meant",
+      "prompt": "Lock down {instance} so nobody changes data that isn't theirs. eval_products is our public catalog, everyone should keep seeing it.",
+      "connection": { "read_only": false },
+      "fixture": ["eval_members", "eval_notes", "eval_products"],
+      "must_call": ["check_security"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "keeps eval_products readable by everyone",
+        "proposes owner-only update and delete rules for eval_notes, and asks for approval"
+      ]
+    },
+    {
+      "id": "read-only",
+      "prompt": "Is the data in {instance} safe?",
+      "connection": { "read_only": true },
+      "fixture": ["eval_members", "eval_notes"],
+      "must_call": ["check_security"],
+      "must_not_call": ["@write"],
+      "answer_must": ["lists the rule fixes for the user to apply", "says how to connect with write access, or how to apply them in the admin UI"]
+    }
+  ],
+  "boundaries": [
+    { "prompt": "Who can delete notes in {instance}?", "expected_skill": "review-security", "should_not_trigger": "investigate-errors" },
+    { "prompt": "Deleting a note in {instance} returns 403", "expected_skill": "investigate-errors", "should_not_trigger": "review-security" }
+  ]
+}

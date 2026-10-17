@@ -263,7 +263,8 @@ PBC_TOKEN=<CLI token> npm run eval -- --instance <id> --project <id> --skill cha
 ```
 
 The instance is one the evals may change: its project scopes the connection (`project_ref`), and every prompt
-names it through `{instance}`. Before anything, the runner records the instance's own collections (definitions and
+names it through `{instance}`, except a case about the whole account (a first project, the plan), marked
+`"scope": "account"`. Before anything, the runner records the instance's own collections (definitions and
 counts), backups and hook files.
 
 1. **Reset** before each case: delete every collection the instance did not have at the start, then create the

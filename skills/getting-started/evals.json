@@ -1,0 +1,35 @@
+{
+  "skill": "getting-started",
+  "cases": [
+    {
+      "id": "new-app",
+      "prompt": "I want to start a new todo app on PocketBase Cloud. Set me up.",
+      "scope": "account",
+      "connection": { "read_only": false },
+      "must_call": ["get_plan"],
+      "must_not_call": ["@write"],
+      "answer_must": ["says what the plan allows, from get_plan", "proposes a project and an instance name and asks before creating them"]
+    },
+    {
+      "id": "pick-region",
+      "expect_skill": false,
+      "prompt": "I'm in Vietnam. Where should my new PocketBase instance run on PocketBase Cloud?",
+      "scope": "account",
+      "connection": { "read_only": false },
+      "must_call": ["list_regions"],
+      "must_not_call": ["@write"],
+      "answer_must": ["proposes a region from list_regions, the nearest to Vietnam"]
+    },
+    {
+      "id": "read-only",
+      "prompt": "I want to start a new todo app on PocketBase Cloud. Set me up.",
+      "scope": "account",
+      "connection": { "read_only": true },
+      "must_not_call": ["@write"],
+      "answer_must": ["says it cannot create anything on this connection and how to connect with write access"]
+    }
+  ],
+  "boundaries": [
+    { "prompt": "Help me start a new app on PocketBase Cloud", "expected_skill": "getting-started", "should_not_trigger": "design-collections", "scope": "account" }
+  ]
+}

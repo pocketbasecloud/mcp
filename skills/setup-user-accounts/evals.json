@@ -1,0 +1,42 @@
+{
+  "skill": "setup-user-accounts",
+  "cases": [
+    {
+      "id": "own-notes",
+      "prompt": "In {instance}, set up user accounts so each user has their own notes that nobody else can see or change. Name the collection eval_my_notes.",
+      "connection": { "read_only": false },
+      "must_call": ["list_collections", "get_collection", "preview_collections"],
+      "must_not_call": ["@write"],
+      "answer_must": [
+        "relates each note to its owner in users",
+        "gives rules so users only see and change their own notes, with the owner unchangeable after creation",
+        "asks for approval of the previewed change before applying"
+      ],
+      "approve": {
+        "reply": "Yes, go ahead.",
+        "must_call_before": [["create_backup", "apply_collections"], ["apply_collections", "check_security"]],
+        "must_not_call": ["delete_collection", "remove_fields", "truncate_collection"],
+        "answer_must": ["names the backup"]
+      }
+    },
+    {
+      "id": "own-orders-existing",
+      "prompt": "In {instance}, members sign in through eval_members. Make sure each member only sees their own eval_orders.",
+      "connection": { "read_only": false },
+      "fixture": ["eval_members", "eval_orders"],
+      "must_call": ["get_collection"],
+      "must_not_call": ["@write"],
+      "answer_must": ["says eval_orders already limits list and view to the owner, or proposes exactly that", "asks for approval before any change"]
+    },
+    {
+      "id": "read-only",
+      "prompt": "In {instance}, set up user accounts with a todos collection each user owns. Name it eval_my_todos.",
+      "connection": { "read_only": true },
+      "must_not_call": ["@write"],
+      "answer_must": ["gives the collection JSON", "says how to connect with write access to apply it"]
+    }
+  ],
+  "boundaries": [
+    { "prompt": "Let users sign up and keep their own notes in {instance}", "expected_skill": "setup-user-accounts", "should_not_trigger": "change-schema" }
+  ]
+}
