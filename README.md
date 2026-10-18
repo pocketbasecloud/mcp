@@ -135,6 +135,7 @@ Web**; then each member clicks **Connect**.
 | --- | --- |
 | Claude Code | `claude mcp add --transport http pocketbasecloud https://mcp.pocketbasecloud.com/mcp`, then run `/mcp` in a session to sign in |
 | Claude Code (plugin, with skills) | `/plugin marketplace add pocketbasecloud/mcp`, then `/plugin install pocketbase-cloud@pocketbase-cloud` |
+| Cline | MCP Servers → Remote Servers → Edit Configuration, and add `"pocketbasecloud": { "type": "streamableHttp", "url": "https://mcp.pocketbasecloud.com/mcp" }` under `mcpServers`. Sign in when Cline opens the browser. See [`llms-install.md`](llms-install.md) |
 | Codex | `codex mcp add pocketbasecloud --url https://mcp.pocketbasecloud.com/mcp`, then `codex mcp login pocketbasecloud` |
 | Cursor | The **Add to Cursor** button above, or `"pocketbasecloud": { "url": "https://mcp.pocketbasecloud.com/mcp" }` under `mcpServers` in `.cursor/mcp.json` |
 | Cursor (plugin, with skills) | **PocketBase Cloud** in the Cursor Marketplace once it is listed. Until then, copy this repository (a copy, not a symlink) into `~/.cursor/plugins/local/pocketbase-cloud` and reload Cursor. Keep only one PocketBase Cloud server: remove the one in `.cursor/mcp.json` if you added it |
