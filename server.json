@@ -3,7 +3,7 @@
   "name": "com.pocketbasecloud/mcp",
   "title": "PocketBase Cloud",
   "description": "Manage PocketBase Cloud projects, instances, deploys, domains, collections and records.",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "websiteUrl": "https://mcp.pocketbasecloud.com/",
   "repository": {
     "url": "https://github.com/pocketbasecloud/mcp",
