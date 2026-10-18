@@ -52,8 +52,9 @@ Follow `references/hook-facts.md`:
 - Changing an existing file: keep everything else in it as it was, and send the whole file.
 
 ### Step 4: Show, ask, deploy
-Show the file, and for an existing one the lines that change. Say that the deploy restarts the instance (the app
-pauses for a moment) and replaces the file whole. After approval: `deploy_hooks` with the file(s).
+Show the whole file as it will be deployed, not only the lines that change, and for an existing one point out the
+change. Say that the deploy restarts the instance (the app pauses for a moment) and replaces the file whole. After
+approval: `deploy_hooks` with the file(s).
 
 ### Step 5: Check
 - `get_logs` (`kind: "pocketbase"`): a file PocketBase cannot run is skipped at start, with "failed to execute

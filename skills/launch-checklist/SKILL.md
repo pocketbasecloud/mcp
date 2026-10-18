@@ -47,8 +47,9 @@ status of their own. Variables stays not checked until the user names the variab
 Report now, without waiting for answers:
 1. **Score:** 100, minus 15 per failed check and 5 per warned check, not below 0; show the sum and how many of the
    8 checks ran, e.g. `75/100 (7 of 8 checks run)`.
-2. **One table:** check, pass / warn / fail, the evidence (tool and what it returned, in a few words), the fix, and
-   who applies it (Last step).
+2. **One table**, a row per check, with the columns Check, Status (pass / warn / fail / not checked), Tool (the
+   call that showed it), Evidence (what it returned, in a few words), Fix, and Who applies it (Last step). On a
+   read-only connection, say under the table that applying a fix needs write access (Rules).
 3. **Not checked:** each by name with the reason (a tool not on this connection, a question not answered). A skipped
    check is not a pass.
 4. **Questions no tool answers**, in one list at the end: is SMTP set in the admin UI (without it, verification and
