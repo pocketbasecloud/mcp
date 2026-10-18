@@ -1,8 +1,8 @@
 # API rules cookbook
 
 A rule is a PocketBase filter, evaluated per record: `null` allows superusers only, `""` allows everyone, anything
-else must be true for the request. Each pattern below is used in the templates (`references/templates.md`) and
-covered there by checks that ran on PocketBase 0.40.5: each rule was also opened or locked on purpose, and a
+else must be true for the request. Each pattern below is used in the templates of the `design-collections` skill
+and covered there by checks that ran on PocketBase 0.40.5: each rule was also opened or locked on purpose, and a
 check failed every time.
 
 ## What a refusal looks like

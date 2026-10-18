@@ -1,8 +1,8 @@
 {
   "name": "pocketbase-cloud",
   "displayName": "PocketBase Cloud",
-  "version": "1.4.2",
-  "description": "Work in your PocketBase Cloud account from Claude Code: projects, PocketBase instances, deploys and logs, custom domains, and the collections, API rules and records inside each instance.",
+  "version": "1.4.3",
+  "description": "Work in your PocketBase Cloud account from Claude: projects, PocketBase instances, deploys and logs, custom domains, and the collections, API rules and records inside each instance.",
   "author": {
     "name": "PocketBase Cloud",
     "url": "https://pocketbasecloud.com"
@@ -10,6 +10,11 @@
   "homepage": "https://mcp.pocketbasecloud.com/",
   "repository": "https://github.com/pocketbasecloud/mcp",
   "license": "Apache-2.0",
+  "icon": "./assets/logo.png",
+  "documentationUrl": "https://pocketbasecloud.com/docs/getting-started/mcp-server/",
+  "supportUrl": "https://github.com/pocketbasecloud/mcp/issues",
+  "privacyPolicyUrl": "https://pocketbasecloud.com/privacy/",
+  "termsOfServiceUrl": "https://pocketbasecloud.com/terms/",
   "keywords": [
     "pocketbase",
     "pocketbase-cloud",

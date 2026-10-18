@@ -102,7 +102,17 @@ Then start the authentication flow so I can sign in to PocketBase Cloud.
 
 ### Claude and ChatGPT
 
-**Claude (claude.ai and Claude Desktop)**
+**Claude (claude.ai and Claude Desktop), with the plugin.** On a paid plan, the plugin brings the skills too:
+
+1. **Customize → Plugins**, then **Add → Add marketplace**, and enter `pocketbasecloud/mcp`.
+2. Install **PocketBase Cloud**.
+3. Open the plugin's **Connectors** tab and connect `pocketbasecloud`: sign in to PocketBase Cloud, then choose the
+   access and the project. Installing alone does not connect it.
+
+A plugin added there is saved to your Claude account, so Claude Code has it too when you sign in with the same
+account.
+
+**Claude (claude.ai and Claude Desktop), server only**
 
 1. **Customize → Connectors**, then **+ Add → Add custom connector**.
 2. Name it (for example *PocketBase Cloud*), paste the server URL, and continue. If asked how Claude identifies
@@ -127,6 +137,7 @@ Web**; then each member clicks **Connect**.
 | Claude Code (plugin, with skills) | `/plugin marketplace add pocketbasecloud/mcp`, then `/plugin install pocketbase-cloud@pocketbase-cloud` |
 | Codex | `codex mcp add pocketbasecloud --url https://mcp.pocketbasecloud.com/mcp`, then `codex mcp login pocketbasecloud` |
 | Cursor | The **Add to Cursor** button above, or `"pocketbasecloud": { "url": "https://mcp.pocketbasecloud.com/mcp" }` under `mcpServers` in `.cursor/mcp.json` |
+| Cursor (plugin, with skills) | **PocketBase Cloud** in the Cursor Marketplace once it is listed. Until then, copy this repository (a copy, not a symlink) into `~/.cursor/plugins/local/pocketbase-cloud` and reload Cursor. Keep only one PocketBase Cloud server: remove the one in `.cursor/mcp.json` if you added it |
 | VS Code / GitHub Copilot | The **Add to VS Code** button above, or `"pocketbasecloud": { "type": "http", "url": "https://mcp.pocketbasecloud.com/mcp" }` under `servers` in `.vscode/mcp.json` |
 | Devin Desktop (formerly Windsurf) | In the Cascade panel, **… → Open MCP config file**, and add `"pocketbasecloud": { "url": "https://mcp.pocketbasecloud.com/mcp" }` under `mcpServers`. For the Devin agent: `devin mcp add pocketbasecloud https://mcp.pocketbasecloud.com/mcp`, then `devin mcp login pocketbasecloud` |
 | Gemini CLI | `gemini extensions install https://github.com/pocketbasecloud/mcp`, then `/mcp auth pocketbasecloud` |
@@ -161,13 +172,13 @@ native discovery and installation flow:
 | Format | Manifest and configuration | Shared components |
 | --- | --- | --- |
 | [Agent Plugins v1](https://agent-plugins.org/) | [`plugin.json`](plugin.json) and [`mcp.json`](mcp.json) | [`skills/`](skills/) |
-| Claude Code plugin | [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json) and [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) | [`.mcp.json`](.mcp.json) and [`skills/`](skills/) |
+| Claude plugin (Claude Code, claude.ai, Claude Desktop) | [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json) and [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) | [`.mcp.json`](.mcp.json) and [`skills/`](skills/) |
 | Cursor plugin | [`.cursor-plugin/plugin.json`](.cursor-plugin/plugin.json) | [`.mcp.json`](.mcp.json) and [`skills/`](skills/) |
-| Gemini CLI extension | [`gemini-extension.json`](gemini-extension.json) | MCP server configuration embedded in the manifest |
+| Gemini CLI extension | [`gemini-extension.json`](gemini-extension.json) | MCP server configuration embedded in the manifest, and [`skills/`](skills/), which Gemini CLI loads from the extension |
 | MCP Registry | [`server.json`](server.json) | Remote server metadata |
 
 Both `mcp.json` and `.mcp.json` are intentional: Agent Plugins requires the root `mcp.json` and its portable
-transport vocabulary (`streamable-http`), while Claude Code and Cursor read `.mcp.json` with theirs (`http`). Gemini
+transport vocabulary (`streamable-http`), while Claude and Cursor read `.mcp.json` with theirs (`http`). Gemini
 CLI names the Streamable HTTP endpoint `httpUrl`. Keep the endpoint the same in all of them; `npm run validate`
 checks it.
 

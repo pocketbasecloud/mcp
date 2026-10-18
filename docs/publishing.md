@@ -72,7 +72,8 @@ Users add this repository as a marketplace (`/plugin marketplace add pocketbasec
 ## Cursor
 
 The Cursor Marketplace reads `.cursor-plugin/plugin.json`. Submit the repository once through Cursor's marketplace
-process; later changes are picked up from the repository.
+process. Cursor reviews every update by hand before it reaches the marketplace, so a release is listed there only
+after that review: plan for it with each version.
 
 ## Gemini CLI
 
