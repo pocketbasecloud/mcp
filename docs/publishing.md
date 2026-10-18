@@ -19,7 +19,8 @@ version can't be changed.
 
 ### Release (automatic)
 
-Bump the version in every manifest, commit and push, then push a tag with the same version:
+Bump the version in every manifest in a pull request (`main` takes changes only through pull requests with the
+`validate` check passing), merge it, then push a tag with the same version from an up-to-date `main`:
 
 ```sh
 git tag v1.1.0 && git push origin v1.1.0
@@ -29,12 +30,17 @@ git tag v1.1.0 && git push origin v1.1.0
 `server.json`'s version, installs a pinned `mcp-publisher` after checking its checksum, signs in by DNS with the
 `MCP_PRIVATE_KEY` secret, and publishes.
 
+Who can publish:
+- The job runs in the `mcp-registry` environment, which only `v*` tags may deploy to, and the secret belongs to that
+  environment, so a workflow on any other branch or tag cannot read it.
+- A ruleset lets only repository admins create `v*` tags, and nobody move or delete one.
+
 The secret holds the key's private part in hex, the same string step 3 below computes. Set it from the key without
 printing it:
 
 ```sh
 openssl pkey -in key.pem -noout -text | grep -A3 "priv:" | tail -n +2 | tr -d ' :\n' \
-  | gh secret set MCP_PRIVATE_KEY -R pocketbasecloud/mcp
+  | gh secret set MCP_PRIVATE_KEY -R pocketbasecloud/mcp --env mcp-registry
 ```
 
 ### Set up, or publish by hand

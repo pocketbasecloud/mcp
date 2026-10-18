@@ -3,7 +3,8 @@
 #   git tag v1.1.0 && git push origin v1.1.0
 #
 # The tag must match the manifests' version (the Registry never takes the same version twice, so a mismatch would
-# burn one). Signs in by DNS with the Ed25519 key in the MCP_PRIVATE_KEY secret; see docs/publishing.md.
+# burn one). Signs in by DNS with the Ed25519 key in the mcp-registry environment's MCP_PRIVATE_KEY secret; see
+# docs/publishing.md.
 name: Publish to MCP Registry
 
 on:
@@ -24,9 +25,11 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # MCP_PRIVATE_KEY is a secret of this environment, which only v* tags may deploy to.
+    environment: mcp-registry
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
 
