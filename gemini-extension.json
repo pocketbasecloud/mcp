@@ -1,6 +1,6 @@
 {
   "name": "pocketbase-cloud",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "PocketBase Cloud: projects, PocketBase instances, deploys, domains, collections and records.",
   "mcpServers": {
     "pocketbasecloud": {
