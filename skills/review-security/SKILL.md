@@ -36,7 +36,10 @@ For every `critical` and `warning` finding:
 1. Say in plain words **who could do what today**, for example: "Anyone on the internet, without signing in, can
    delete any post."
 2. Propose the **exact rule** that fixes it, and what it allows. Common patterns:
-   - Only the owner: `@request.auth.id != "" && owner = @request.auth.id`
+   - Only the owner (list, view, delete): `@request.auth.id != "" && owner = @request.auth.id`
+   - Create only as yourself: `@request.auth.id != "" && @request.body.owner = @request.auth.id`
+   - Update by the owner, who cannot hand the record to someone else:
+     `@request.auth.id != "" && owner = @request.auth.id && @request.body.owner:changed = false`
    - Any signed-in user may read: `@request.auth.id != ""`
    - Superusers only: `null` (no one through the API except superusers)
 3. Mention `info` findings briefly, in one line each.
@@ -64,6 +67,8 @@ about to go live.
 ## Rules
 
 - Never change a rule without the user's approval of that exact rule.
+- An owner-only update rule also keeps the owner field from changing (`@request.body.owner:changed = false`), or the
+  owner can give the record to another user; the same for any field a rule trusts, such as `role`.
 - If `update_api_rules` is not available (a read-only connection, or a connection without the database tools),
   list the fixes so the user can apply them in the admin UI.
 - A public read rule can be intended (a blog's published posts). Ask before locking it, and suggest a filter such
