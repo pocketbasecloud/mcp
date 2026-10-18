@@ -358,7 +358,8 @@ for (const skill of skills) {
         }
         for (const [t, result, spec] of turns) {
           const checks = [{ check: "turn", item: "finished", pass: result.ok, detail: result.ok ? "" : "error or timeout" }];
-          if (t === "1" && branch === "with" && !opt.candidates) {
+          // expect_skill: false marks a case any fitting skill (or none) may answer, e.g. a simple question.
+          if (t === "1" && branch === "with" && !opt.candidates && c.expect_skill !== false) {
             checks.push({ check: "skill", item: skill, pass: result.skills[0] === `pocketbase-cloud:${skill}`, detail: result.skills[0] ?? "none" });
           }
           checks.push(...scoreTurn(result.calls, spec, { id: R, name: target.name }));

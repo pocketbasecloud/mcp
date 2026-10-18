@@ -11,7 +11,7 @@
       "must_not_call": ["@write"],
       "answer_must": [
         "says the list requests ran signed in, and names the listRule owner = @request.auth.id as what leaves them empty",
-        "does not propose opening the list to everyone"
+        "does not open the list to everyone, and offers it only if the user says the orders are meant to be public"
       ]
     },
     {

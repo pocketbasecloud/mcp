@@ -66,10 +66,10 @@ Say the cause in plain words, quoting at most three log entries, without tokens,
 - A rule: from `references/rules.md`, the condition that allows the intended case and nothing more; apply it with
   `update_api_rules` after the user approves that exact rule.
 - A field option or an index: hand off to `change-schema`.
-- A hook: `get_hook` the file, change only what is broken, show it, then `deploy_hooks` after approval. Each
-  `deploy_hooks` restarts the instance (a new container, seen in `get_logs`), so the app pauses for a moment: say so
-  when asking. It replaces the file whole, and a backup does not hold `pb_hooks`. More than a small fix: hand off to
-  `write-hooks`.
+- A hook: `get_hook` the file, change only what is broken, show the whole corrected file, then `deploy_hooks` after
+  approval. Each `deploy_hooks` restarts the instance (a new container, seen in `get_logs`), so the app pauses for a
+  moment: say so when asking. It replaces the file whole, and a backup does not hold `pb_hooks`. More than a small
+  fix: hand off to `write-hooks`.
 - The app's code (no token sent, a wrong field name in a filter): say what to change, with the SDK call.
 
 ### Step 5: Check

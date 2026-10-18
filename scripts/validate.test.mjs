@@ -160,3 +160,12 @@ test("a candidate eval named after another file is caught", () => {
   });
   assert.match(validate(dir).join("\n"), /evals\/candidates\/manage-env\.json.*manage-envs/);
 });
+
+test("a case about the whole account may leave out {instance}, when it says so", () => {
+  const dir = copy();
+  edit(dir, "skills/getting-started/evals.json", (e) => {
+    delete e.cases[1].scope;
+  });
+  assert.match(validate(dir).join("\n"), /getting-started\/evals\.json case "pick-region".*\{instance\}/);
+  assert.deepEqual(validate(ROOT), []);
+});

@@ -11,7 +11,7 @@
       "name": "pocketbase-cloud",
       "displayName": "PocketBase Cloud",
       "description": "Work in your PocketBase Cloud account from Claude Code: projects, PocketBase instances, deploys and logs, custom domains, and the collections, API rules and records inside each instance.",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "author": {
         "name": "PocketBase Cloud",
         "url": "https://pocketbasecloud.com"

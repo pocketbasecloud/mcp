@@ -220,7 +220,10 @@ function checkEvals(root, skill, errors, file = `skills/${skill}/evals.json`) {
   ];
   for (const c of cases) {
     const at = `${file} case "${c.id}"`;
-    if (!String(c.prompt ?? "").includes("{instance}")) errors.push(`${at}: the prompt must name {instance}, which the runner fills in.`);
+    // A case about the whole account (a first project, the plan) names no instance, and says so with scope.
+    if (c.scope !== "account" && !String(c.prompt ?? "").includes("{instance}")) {
+      errors.push(`${at}: the prompt must name {instance}, which the runner fills in.`);
+    }
     for (const part of c.fixture ?? []) {
       if (!(part in fixtures)) errors.push(`${at}: evals/fixture.json has no collection, hook or traffic ${part}.`);
     }
@@ -246,7 +249,9 @@ function checkEvals(root, skill, errors, file = `skills/${skill}/evals.json`) {
   }
   const skills = new Set(readdirSync(join(root, "skills"), { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name));
   for (const b of evals.boundaries ?? []) {
-    if (!String(b.prompt ?? "").includes("{instance}")) errors.push(`${file} boundary "${b.prompt}": the prompt must name {instance}.`);
+    if (b.scope !== "account" && !String(b.prompt ?? "").includes("{instance}")) {
+      errors.push(`${file} boundary "${b.prompt}": the prompt must name {instance}.`);
+    }
     for (const name of [b.expected_skill, b.should_not_trigger]) {
       if (!skills.has(name)) errors.push(`${file} boundary "${b.prompt}": no skill is called ${name}.`);
     }
