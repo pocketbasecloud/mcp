@@ -1,8 +1,5 @@
 # pb_public facts, measured
 
-Kept from the `ship-app` skill, which was written and evaluated for 1.3.0, then dropped (see the roadmap). The
-facts went into pbc-mcp's `deploy_public` description instead, where every client reads them.
-
 Run through pbc-mcp's `deploy_public` on PocketBase Cloud (PocketBase 0.40.4) on 2026-10-17, and read from the
 platform's deploy documentation where noted.
 
