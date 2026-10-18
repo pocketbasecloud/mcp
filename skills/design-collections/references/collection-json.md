@@ -4,6 +4,9 @@ The same JSON as the admin UI's import: an array of collections. `preview_collec
 (with `migration: true`, also a `pb_migrations/` file to commit); `apply_collections` applies it, up to 20
 collections per call.
 
+Contents: [A collection](#a-collection) · [What apply_collections does with it](#what-apply_collections-does-with-it)
+· [When apply_collections is refused](#when-apply_collections-is-refused) · [A full example](#a-full-example)
+
 ## A collection
 
 | Key | Value |

@@ -12,7 +12,8 @@ rename field, rename column, change type, make required, make unique, unique ind
 
 Changes collections that already hold records. Each kind of change has one safe path, and some refusals are not
 harmless: when PocketBase cannot build an index, the running instance keeps the refused change until it restarts.
-`references/rename-and-retype.md` holds the worked JSON and what each path was checked against.
+`references/rename-and-retype.md` holds the worked JSON and what each path was checked against;
+`references/rules.md` holds the API rule patterns, for a change that touches rules.
 
 **Use this skill when** the collection the user wants to change already has records.
 

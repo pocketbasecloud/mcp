@@ -137,6 +137,7 @@ Web**; then each member clicks **Connect**.
 | Claude Code (plugin, with skills) | `/plugin marketplace add pocketbasecloud/mcp`, then `/plugin install pocketbase-cloud@pocketbase-cloud` |
 | Codex | `codex mcp add pocketbasecloud --url https://mcp.pocketbasecloud.com/mcp`, then `codex mcp login pocketbasecloud` |
 | Cursor | The **Add to Cursor** button above, or `"pocketbasecloud": { "url": "https://mcp.pocketbasecloud.com/mcp" }` under `mcpServers` in `.cursor/mcp.json` |
+| Cursor (plugin, with skills) | **PocketBase Cloud** in the Cursor Marketplace once it is listed. Until then, copy this repository (a copy, not a symlink) into `~/.cursor/plugins/local/pocketbase-cloud` and reload Cursor. Keep only one PocketBase Cloud server: remove the one in `.cursor/mcp.json` if you added it |
 | VS Code / GitHub Copilot | The **Add to VS Code** button above, or `"pocketbasecloud": { "type": "http", "url": "https://mcp.pocketbasecloud.com/mcp" }` under `servers` in `.vscode/mcp.json` |
 | Devin Desktop (formerly Windsurf) | In the Cascade panel, **… → Open MCP config file**, and add `"pocketbasecloud": { "url": "https://mcp.pocketbasecloud.com/mcp" }` under `mcpServers`. For the Devin agent: `devin mcp add pocketbasecloud https://mcp.pocketbasecloud.com/mcp`, then `devin mcp login pocketbasecloud` |
 | Gemini CLI | `gemini extensions install https://github.com/pocketbasecloud/mcp`, then `/mcp auth pocketbasecloud` |
@@ -173,7 +174,7 @@ native discovery and installation flow:
 | [Agent Plugins v1](https://agent-plugins.org/) | [`plugin.json`](plugin.json) and [`mcp.json`](mcp.json) | [`skills/`](skills/) |
 | Claude plugin (Claude Code, claude.ai, Claude Desktop) | [`.claude-plugin/plugin.json`](.claude-plugin/plugin.json) and [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) | [`.mcp.json`](.mcp.json) and [`skills/`](skills/) |
 | Cursor plugin | [`.cursor-plugin/plugin.json`](.cursor-plugin/plugin.json) | [`.mcp.json`](.mcp.json) and [`skills/`](skills/) |
-| Gemini CLI extension | [`gemini-extension.json`](gemini-extension.json) | MCP server configuration embedded in the manifest |
+| Gemini CLI extension | [`gemini-extension.json`](gemini-extension.json) | MCP server configuration embedded in the manifest, and [`skills/`](skills/), which Gemini CLI loads from the extension |
 | MCP Registry | [`server.json`](server.json) | Remote server metadata |
 
 Both `mcp.json` and `.mcp.json` are intentional: Agent Plugins requires the root `mcp.json` and its portable
