@@ -58,6 +58,9 @@ Write the definitions as in `references/collection-json.md`: an `id` for each ne
 same request can name it; for `users` and every other existing collection, the id `get_collection` gave in step 1
 (`users` is usually `_pb_users_auth_`). Call `preview_collections` (`migration: true` when the app keeps
 `pb_migrations/` in git). Show what it will create and what it refuses, and ask for approval of exactly that.
+On a read-only connection, call it with `migration: true` and end the reply with the hand-over instead of the
+question: the collection JSON, then the `pb_migrations/` file, each in its own code block, then how to reconnect
+with write access. Do not ask whether to paste them.
 
 ### Step 6: Back up, then apply
 After approval, `create_backup` first (`before-<short-name>.zip`). Then, if the app keeps `pb_migrations/` in git:
