@@ -33,8 +33,8 @@ With the PocketBase Cloud MCP Server, your assistant can:
   deploys, and the logs of instances and backends.
 * **Find out why something broke:** read a failed deploy's build log and explain the fix.
 * **Start an app:** create projects and PocketBase instances in the region you choose.
-* **Ship:** add and verify custom domains, deploy hooks and static sites, and get the exact `pbc` command to deploy
-  your source code.
+* **Ship:** deploy a PocketBase instance's hooks, migrations and static site, edit its files live with version
+  history and restore, try changes on a preview copy first, push them to GitHub, and add custom domains.
 * **Work with data:** design collections and API rules, and read, create, update and delete records.
 * **Harden an instance:** review API rules for security gaps, find slow requests, and back up before risky
   changes.
@@ -191,16 +191,20 @@ list, with every tool, is on the [connect page](https://mcp.pocketbasecloud.com/
 | Group | Default | What it covers |
 | --- | :---: | --- |
 | `account` | ✅ | Overview of the account, plan and Free trial, projects, regions; create a project. |
-| `resources` | ✅ | PocketBase instances, frontends and backends: list, inspect, create an instance, runtime settings, continuous backup. |
-| `deploy` | ✅ | Deploys and their build logs, runtime logs, a one-call diagnosis, hooks, static sites, and the `pbc` command to deploy source code. |
+| `resources` | ✅ | PocketBase instances, frontends and backends: list, inspect, create an instance, runtime settings, continuous backup, private apps, and moving an instance to the compute its plan includes. |
+| `deploy` | ✅ | Deploys and their build logs, runtime logs, a one-call diagnosis, rollbacks. For PocketBase instances: deploy their files (`pb_hooks`, `pb_migrations`, `pb_public`); read, search and edit them live; version history and restore; previews (on Starter and Pro: a copy of an instance to try changes on before shipping them to live); and pushing changes to GitHub. |
 | `domains` | ✅ | Add, verify, check and remove custom domains. |
 | `docs` | ✅ | Search the PocketBase and PocketBase Cloud guide for agents. |
-| `database` | ✅ | Inside an instance: collections, API rules, records, request logs, backups, crons, security and performance checks, TypeScript types. |
+| `database` | ✅ | Inside an instance: collections, API rules, records, request logs, backups, crons, security and performance checks, TypeScript types, test users and calls to its API, mail and app settings. |
 | `env` | opt-in | Environment variables of a resource (build-time for frontends); values are never read back. |
 | `database_admin` | opt-in | Bulk deletes and restores: truncate or delete a collection, remove fields, restore or delete a backup. |
 
-Not available on purpose: deleting projects or resources (use the portal or `pbc`), and building source code on
-the server (it runs on your machine; the server gives you the `pbc` command).
+Not available on purpose: deleting projects or resources (use the portal or `pbc`). Not available yet: building and
+deploying frontend and backend source code, which happens in the portal or with `pbc` on your machine. PocketBase
+instances deploy from the server (`deploy_resource`).
+
+Deprecated, and still answering with their replacement named: `get_deploy_command`, `list_hooks`, `get_hook`,
+`deploy_hooks`, `deploy_public` and `create_pocketbase`.
 
 ## Options
 
@@ -220,8 +224,8 @@ For example: `https://mcp.pocketbasecloud.com/mcp?read_only=true&project_ref=<pr
 
 * A **PocketBase Cloud account**. You sign in on the PocketBase Cloud portal when you connect.
 * What you can create and deploy depends on your **plan**; new accounts start with a Free trial.
-* Deploying **source code** also needs the PocketBase Cloud CLI, `pbc`, on your machine; the server tells you the
-  exact command to run.
+* Deploying a frontend's or backend's **source code** happens in the PocketBase Cloud portal or with its CLI, `pbc`,
+  on your machine. A PocketBase instance's files deploy from the server.
 * An MCP client that supports remote servers (Streamable HTTP) and OAuth. For Claude, adding a custom connector
   needs a plan that allows it.
 
@@ -241,7 +245,8 @@ For example: `https://mcp.pocketbasecloud.com/mcp?read_only=true&project_ref=<pr
   collection also needs its name typed again; bulk deletes and restores back the instance up first and return the
   backup's name. Restoring it brings records back, but not a deleted collection or field: instances replay that
   change when they restart, so restore the backup into a new instance instead. Changing the type of an existing field
-  is refused.
+  is refused. Every change to an instance's files is a revision you can restore, and nothing is pushed to GitHub
+  unless you ask.
 * **Instance credentials are never held.** Database tools reach an instance through PocketBase Cloud, and only the
   calls those tools make are allowed: no instance settings, no backup downloads, no writes to system collections
   such as `_superusers`.
@@ -281,7 +286,7 @@ This forwards your token to PocketBase Cloud as is (token passthrough); interact
 * "Why did the last deploy of my frontend fail?"
 * "Create a new PocketBase instance called `shop-db` in my Demo shop project."
 * "Add the domain `api.example.com` to my backend and tell me which DNS record to create."
-* "Give me the command to deploy this folder as a new backend."
+* "Show me what changed in the hooks of `shop-db` this week, and put back yesterday's version."
 * "Check the API rules of `shop-db` for security problems."
 * "In `shop-db`, how many orders are paid, pending and refunded? Then show me the five newest."
 * "Set up user accounts in `shop-db` so each user only sees their own orders."
@@ -293,7 +298,7 @@ This forwards your token to PocketBase Cloud as is (token passthrough); interact
 | Skill | Use it for |
 | --- | --- |
 | [`getting-started`](skills/getting-started/SKILL.md) | A first project and PocketBase instance. |
-| [`debug-deploy`](skills/debug-deploy/SKILL.md) | Why a deploy failed, and the command to deploy again. |
+| [`debug-deploy`](skills/debug-deploy/SKILL.md) | Why a deploy failed, and how to deploy again. |
 | [`review-security`](skills/review-security/SKILL.md) | API rules that are too open, fixed with your approval. |
 | [`setup-user-accounts`](skills/setup-user-accounts/SKILL.md) | Users, per-user collections and safe rules. |
 | [`design-collections`](skills/design-collections/SKILL.md) | An app's collections, relations, indexes and rules. |
@@ -301,7 +306,7 @@ This forwards your token to PocketBase Cloud as is (token passthrough); interact
 | [`investigate-errors`](skills/investigate-errors/SKILL.md) | Why the app gets errors or empty lists, and the fix. |
 | [`launch-checklist`](skills/launch-checklist/SKILL.md) | A read-only, scored check before going live. |
 | [`write-hooks`](skills/write-hooks/SKILL.md) | Server code in `pb_hooks`, read first and deployed with approval. |
-| [`ship-app`](skills/ship-app/SKILL.md) | A site online from `pb_public` or a frontend, sent whole. |
+| [`ship-app`](skills/ship-app/SKILL.md) | A site online from `pb_public` or a frontend, saying first what each change removes. |
 | [`import-data`](skills/import-data/SKILL.md) | Rows from CSV or JSON, checked and imported with approval. |
 
 With a plain MCP setup (no plugin), copy a skill's folder into your client's skills directory, or ask your

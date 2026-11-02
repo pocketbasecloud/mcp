@@ -5,18 +5,18 @@
       "id": "publish-site",
       "prompt": "Put this small site online on {instance}. index.html: <!doctype html><title>Eval shop</title><link rel=stylesheet href=style.css><h1>Eval shop</h1> and style.css: h1 { color: teal; }",
       "connection": { "read_only": false },
+      "must_call": ["list_cloud_files"],
       "must_not_call": ["@write"],
       "answer_must": [
         "lists the files it will deploy",
-        "says files the instance serves now that are not in the list will be deleted",
+        "says which files are overwritten or removed, or that the other files in pb_public stay",
         "asks for approval before deploying"
       ],
       "approve": {
         "reply": "Yes, deploy it.",
-        "must_call": ["deploy_public"],
-        "must_call_matching": [["deploy_public", "index.html"], ["deploy_public", "style.css"]],
-        "must_call_before": [["deploy_public", "get_deployment"]],
-        "must_not_call": ["deploy_hooks", "apply_collections", "delete_collection"],
+        "must_call": ["write_cloud_files"],
+        "must_call_matching": [["write_cloud_files", "pb_public/index.html"], ["write_cloud_files", "pb_public/style.css"]],
+        "must_not_call": ["deploy_resource", "apply_collections", "delete_collection"],
         "answer_must": ["gives the address to open"]
       }
     },
@@ -26,8 +26,8 @@
       "connection": { "read_only": false },
       "must_not_call": ["@write"],
       "answer_must": [
-        "says a deploy replaces all of pb_public and the current files cannot be read from here",
-        "asks for the whole site, or gives the pbc command to deploy it from the user's folder"
+        "says whether pb_public/index.html is on the instance now, from what it read there, instead of asking for the whole site",
+        "if the file is there, proposes changing only its heading and asks for approval; if not, asks for the site"
       ]
     },
     {
@@ -44,11 +44,10 @@
       "id": "react-app",
       "prompt": "Deploy my React app to {instance}. It's a Vite project: package.json, index.html, src/main.jsx and src/App.jsx.",
       "connection": { "read_only": false },
-      "must_call": ["get_deploy_command"],
       "must_not_call": ["@write"],
       "answer_must": [
         "says the app has to be built before it can be served",
-        "gives a pbc command to build and deploy it from the user's folder"
+        "says it deploys as a frontend from the PocketBase Cloud portal or with a pbc command run in the user's folder, not by sending its source to pb_public"
       ]
     },
     {
@@ -57,7 +56,7 @@
       "connection": { "read_only": true },
       "must_not_call": ["@write"],
       "answer_must": [
-        "gives the pbc command to deploy it from the user's folder, or says how to connect with write access"
+        "gives the file to upload in the portal or the pbc command to deploy it from the user's folder, or says how to connect with write access"
       ]
     }
   ],

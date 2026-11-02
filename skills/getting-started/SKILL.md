@@ -43,9 +43,9 @@ users, and say why in a few words. If the account has its own compute, mention i
 
 ### Step 4: Create the instance
 
-Propose an instance name (lowercase, hyphens, e.g. `shop-db`). Once the user agrees, call `create_pocketbase` with
-`name`, `project`, and either `location` (a region code from step 3) or `compute` (an id of the account's own
-compute).
+Propose an instance name (lowercase, hyphens, e.g. `shop-db`). Once the user agrees, call `create_resource` with
+`kind: "pocketbase"`, `name`, `project`, and either `location` (a region code from step 3) or `compute` (an id of the
+account's own compute).
 
 The call returns at once with status `creating`. The superuser is the account's email; its password is generated
 and never shown. Tell the user to set their own with `pbc pocketbase superuser sync` or in the PocketBase Cloud
@@ -63,14 +63,15 @@ Give the user the instance's address from `domain` (`https://<domain>`) and its 
 - The app's collections, fields and rules: the **design-collections** skill (the default next step).
 - User accounts and owned data only: the **setup-user-accounts** skill.
 - Code for their app: `search_docs` for the PocketBase JS SDK, auth, realtime or files.
-- Deploying a frontend or backend: `get_deploy_command`, which returns the `pbc` command to run on their machine.
+- Server code or a small site served by the instance: the **write-hooks** and **ship-app** skills.
+- Deploying a frontend or backend: the PocketBase Cloud portal, or the `pbc` CLI on their machine.
 
 ---
 
 ## Rules
 
 - Never create a project or an instance without the user's agreement on its name.
-- If `create_project` or `create_pocketbase` is not available, the connection is read-only: say so, and tell the user
+- If `create_project` or `create_resource` is not available, the connection is read-only: say so, and tell the user
   to connect again with write access: "Read and write" on PocketBase Cloud's sign-in page, or no `read_only=true` in
   the server URL.
 - Do not guess region codes or compute ids; use what `list_regions` returns.

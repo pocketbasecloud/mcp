@@ -29,8 +29,8 @@ If the user said "read only", run no write tool in this conversation.
 
 ### Step 1: Read what exists
 `get_collection` (fields with their ids, rules, indexes) and `count_records` with groups for the fields involved
-(how many records, how many empty). `list_hooks`, then `get_hook` for each file: a hook that names the field must
-change with it (`write-hooks`).
+(how many records, how many empty). `search_cloud_files` for the field's name (`glob: "pb_hooks/**"`), then
+`read_cloud_file` for each file it finds: a hook that names the field must change with it (`write-hooks`).
 
 ### Step 2: Classify the change
 Each kind has its own path; never mix a risky one with other changes in the same `apply_collections`.

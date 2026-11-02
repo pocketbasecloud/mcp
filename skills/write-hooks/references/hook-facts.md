@@ -1,7 +1,9 @@
 # Hook facts, measured
 
 Each fact below was run on PocketBase 0.40.5 (a local instance, and PocketBase Cloud for the deploy and log ones)
-on 2026-10-17. The API itself comes from `search_docs`; this file holds what the docs leave out or what goes wrong.
+on 2026-10-17, except those marked *(tool)*, which come from the descriptions of pbc-mcp's `edit_cloud_file` and
+`write_cloud_files` (2026-11-02). The API itself comes from `search_docs`; this file holds what the docs leave out or
+what goes wrong.
 
 ## Where code runs
 
@@ -25,13 +27,18 @@ on 2026-10-17. The API itself comes from `search_docs`; this file holds what the
 
 ## Deploy and start
 
+The deploys were measured with `deploy_hooks`, the tool `edit_cloud_file` and `write_cloud_files` replaced.
+
 | Fact | What happened |
 |---|---|
-| `deploy_hooks` restarts the instance | `get_logs` showed the container replaced and "Server started" for each deploy |
+| A hook deploy restarts the instance | `get_logs` showed the container replaced and "Server started" for each deploy |
 | New code runs right after the restart | No other step was needed |
 | A file with a syntax error | The instance started and its other hooks ran; the file was skipped with `failed to execute <file>: SyntaxError …` in the runtime log |
-| A PocketBase backup | Holds `pb_data` only: an overwritten hook file cannot come back from it |
-| Removing a file | No MCP tool: `pbc pocketbase hooks rm <file> --name <instance>` (restarts the instance too) |
+| A change the instance cannot start with *(tool)* | It is undone, and the write returns the error line |
+| Each write is a revision *(tool)* | Live at once as one revision and one deployment; `restore_revision` with the number before it undoes it. Nothing is pushed to GitHub unless the user asks (`push_to_github`) |
+| A file someone changed since `baseRevision` *(tool)* | The write is refused with who changed it, never overwritten |
+| A PocketBase backup | Holds `pb_data` only: an overwritten hook file cannot come back from it; the instance's revisions can (`read_cloud_file` with `number`, `restore_revision`) |
+| Removing a file *(tool)* | `write_cloud_files` with `delete`, which needs `confirm: true`; it restarts the instance like any hook change |
 
 ## Cron
 
