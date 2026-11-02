@@ -59,7 +59,7 @@ Once the user has fixed it:
   apply it with `edit_cloud_file` or `write_cloud_files`, or send the whole set with `deploy_resource`, which
   replaces each `pb_hooks` and `pb_public` folder it is sent (say which files that removes; it needs `confirm: true`).
 - A frontend or backend: they deploy it again from the PocketBase Cloud portal, or with
-  `pbc deploy <kind> --name <resource>` run in the directory that holds the code.
+  `pbc <kind> deploy --name <resource>` run in the directory that holds the code.
 
 ### Last step: Next
 

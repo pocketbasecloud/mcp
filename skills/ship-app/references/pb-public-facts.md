@@ -17,4 +17,4 @@ Cloud (PocketBase 0.40.4) on 2026-10-17, and read from the platform's deploy doc
 | Every unknown path answers `index.html` with 200 | `/some/app/route`, and also `/nope.css`: a missing asset never gives a 404 |
 | Limits *(tool)* | `write_cloud_files`: 100 files, 1,000,000 characters each and 4,000,000 in all per call, paths of at most 255 characters. `deploy_resource`: 500 files and 4,000,000 characters. Bigger files through `create_upload_link`, up to the plan's per-file limit (Free 1 MB, Starter and Pro 100 MB) |
 | Refused in `pb_public` *(tool)* | `.env` files, anything in `.git`, and a `package.json` whose start script runs a server: that is a backend, deployed from the portal |
-| `pbc deploy pocketbase` from a folder | Sends `pb_public`, `pb_hooks` and `pb_migrations` found there in one archive; `pb_public` is replaced (platform docs) |
+| `pbc pocketbase deploy` from a folder | Sends `pb_public`, `pb_hooks` and `pb_migrations` found there in one archive; `pb_public` is replaced (platform docs) |
