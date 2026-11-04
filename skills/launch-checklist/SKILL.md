@@ -52,7 +52,7 @@ Report now, without waiting for answers:
    read-only connection, say under the table how a fix gets applied after reconnecting (Rules).
 3. **Not checked:** each by name with the reason (a tool not on this connection, a question not answered). A skipped
    check is not a pass.
-4. **Questions no tool answers**, in one list at the end: is SMTP set in the admin UI (without it, verification and
+4. **Questions no tool answers**, in one list at the end: is mail set up, with managed email (the portal, or `pbc pocketbase email enable`) or SMTP in the admin UI (without it, verification and
    password-reset emails do not go out); did they set their own superuser password; are the OAuth2 providers they
    use configured; is the app URL in the admin UI's settings the real one; with `list_env_vars` on the connection,
    which variables the app needs.
