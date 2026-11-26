@@ -18,6 +18,19 @@ Versions of this repository: the client manifests, the MCP Registry entry and th
   previews and pushing to GitHub in `deploy`.
 - `npm run validate` knows the server's current tools, so `@write` in an eval covers the new write tools too. The eval
   runner also blocks `create_resource`, `deploy_resource` and `push_to_github`.
+- The skills follow the server's smaller tool catalog (pbc-mcp #77 and #78). Overlapping tools became options:
+  `get_overview` gives the plan and projects, and with `regions: true` the regions; `create_resource` makes a new
+  project with `projectName`; `get_resource` and `get_collection` list without a name; `list_records` reads one
+  record with `id` and counts with `count: true`; `get_logs` reads an instance's request log with `requests: true`.
+  Custom domains, pushing to GitHub and continuous backup moved to the portal, and env values are typed only on the
+  page `request_env_values` links. `generate_types` is gone, so design-collections and setup-user-accounts no longer
+  end with types. change-schema restarts an instance with `restart_resource` after approval. launch-checklist's
+  domain row reads the status from `get_resource`.
+- Every tool group is on every connection, so the README and `llms-install.md` drop the `features` option, and the
+  README's Tools table lists what each group covers and what is done in the portal.
+- `npm run validate` lists only the tools the server offers now, so a skill eval that names a retired tool fails.
+  Evals that need an option check for it with `must_call_matching`. The eval runner's setup connects with
+  `legacy_tools=true` for the hook tools it still uses; the model under test sees only the current tools.
 
 ## 1.4.3 (2026-10-18)
 

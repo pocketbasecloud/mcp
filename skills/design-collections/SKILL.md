@@ -1,6 +1,6 @@
 ---
 name: design-collections
-description: "Design the collections of a PocketBase instance on PocketBase Cloud from a description of the app: fields, relations, indexes and API rules. Use when the user describes an app and wants its data model, asks how to structure collections or tables, or wants collections for posts, products, orders, bookings, contacts, comments and the like. Proposes the model from rule patterns proven on a real PocketBase, previews it, backs up and applies it only after approval, then checks the rules and generates TypeScript types. Not for changing collections that already hold data: use change-schema. Not for sign-up and each user's own data alone: use setup-user-accounts."
+description: "Design the collections of a PocketBase instance on PocketBase Cloud from a description of the app: fields, relations, indexes and API rules. Use when the user describes an app and wants its data model, asks how to structure collections or tables, or wants collections for posts, products, orders, bookings, contacts, comments and the like. Proposes the model from rule patterns proven on a real PocketBase, previews it, backs up and applies it only after approval, then checks the rules. Not for changing collections that already hold data: use change-schema. Not for sign-up and each user's own data alone: use setup-user-accounts."
 ---
 
 # Design collections
@@ -27,7 +27,7 @@ without it the connection is read-only. Say so in that line, and plan to hand ov
 asking to apply. If the user said "read only", run no write tool in this conversation.
 
 ### Step 1: Read what exists
-`list_collections`, then `get_collection` for `users` and for every collection the design touches. Existing
+`get_collection` without `collection` to list them, then `get_collection` for `users` and for every collection the design touches. Existing
 collections and fields are kept. A collection that already holds data and needs a change other than an addition
 (a rename, a type, a new required field) goes to `change-schema`.
 
@@ -73,9 +73,6 @@ backup brings records back, not a collection's design: say so if the user asks h
 `check_security`. Go through each `critical` and `warning` with the user: fix it through steps 4 to 6, or keep it
 when the data is meant to be public (a blog's tags) and say so. `preview_collections` warns about the same rules
 before applying.
-
-### Step 8: Types
-`generate_types`; tell the user where to save the file in the app.
 
 ### Last step: Next
 `setup-user-accounts` when the app's sign-up and sign-in are not set up yet; seed data with `create_records`, after

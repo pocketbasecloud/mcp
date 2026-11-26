@@ -47,26 +47,24 @@ const BRANCHES = opt.branches.split(",");
  * lifts one for a case that needs it, e.g. deploy_resource (it replaces the instance's pb_hooks and pb_public, which
  * the cleanup cannot put back).
  */
-const BLOCKED = [
-  "create_pocketbase", "create_resource", "update_pocketbase_config", "set_continuous_backup", "create_project",
-  "delete_record", "run_cron", "deploy_public", "deploy_resource", "push_to_github", "add_domain", "verify_domain",
-  "remove_domain", "set_env_vars", "delete_env_vars",
-]
+const BLOCKED = ["create_resource", "update_pocketbase_config", "restart_resource", "delete_record", "run_cron", "deploy_resource"]
   .filter((t) => !(opt.allow ?? []).includes(t))
   .map((t) => `mcp__pocketbasecloud__${t}`);
-const FEATURES = "account,resources,deploy,database,docs";
-const url = (extra) => `${opt.server}?project_ref=${opt.project}&features=${extra ?? FEATURES}`;
+// Every connection gets every tool group; the server has no option that picks them.
+const url = (extra = "") => `${opt.server}?project_ref=${opt.project}${extra}`;
 
 // ---- the instance: guard, reset, cleanup ----
 
-const admin = await connect(url(`${FEATURES},database_admin`), TOKEN);
+// The setup and cleanup still use list_hooks and deploy_hooks, which the server retired; legacy_tools keeps them for
+// this connection only. The model under test connects without it and sees only the current tools.
+const admin = await connect(url("&legacy_tools=true"), TOKEN);
 const target = await admin.call("get_resource", { kind: "pocketbase", resource: opt.instance });
 if (target.project !== opt.project) throw new Error(`${opt.instance} is not in project ${opt.project}.`);
 const R = target.id;
 const isEval = (name) => name.startsWith("eval_");
 
 async function userCollections() {
-  const { collections } = await admin.call("list_collections", { resource: R });
+  const { collections } = await admin.call("get_collection", { resource: R });
   return collections.filter((c) => !c.system).map((c) => c.name);
 }
 async function snapshot(names) {
@@ -74,7 +72,7 @@ async function snapshot(names) {
   for (const n of names) {
     out[n] = {
       definition: await admin.call("get_collection", { resource: R, collection: n }),
-      count: (await admin.call("count_records", { resource: R, collection: n })).total,
+      count: (await admin.call("list_records", { resource: R, collection: n, count: true })).total,
     };
   }
   return out;

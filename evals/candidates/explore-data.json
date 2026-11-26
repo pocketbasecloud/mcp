@@ -7,7 +7,8 @@
       "prompt": "In {instance}, how many orders does each member have in eval_orders, and what is the biggest one?",
       "connection": { "read_only": false },
       "fixture": ["eval_members", "eval_orders"],
-      "must_call": ["count_records"],
+      "must_call": ["list_records"],
+      "must_call_matching": [["list_records", "count"]],
       "must_not_call": ["@write"],
       "answer_must": ["gives the number of orders per member, from counts rather than every order listed"]
     },

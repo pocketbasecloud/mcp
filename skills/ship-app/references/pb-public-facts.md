@@ -9,8 +9,8 @@ Cloud (PocketBase 0.40.4) on 2026-10-17, and read from the platform's deploy doc
 | `write_cloud_files` keeps what it is not sent *(tool)* | Files not named stay as they are; files with the same path are overwritten; only the paths in `delete` are removed, and deleting needs `confirm: true` |
 | `deploy_resource` replaces the folders it is sent *(tool)* | Each of `pb_hooks` and `pb_public` sent replaces that folder (its files not sent are removed); `pb_migrations` is merged; folders not sent stay. Replacing needs `confirm: true` |
 | A full replace removes what it was not sent | A second deploy with only `index.html` removed `css/app.css` and `img/dot.png` |
-| What is there can be read *(tool)* | `list_cloud_files` lists `pb_public` (`glob` for any depth), `read_cloud_file` reads one file, `download_cloud_files` zips them all |
-| Each change is a revision *(tool)* | Live at once as one revision and one deployment; `restore_revision` with the number before it undoes it. Nothing is pushed to GitHub unless the user asks (`push_to_github`) |
+| What is there can be read *(tool)* | `list_cloud_files` lists `pb_public` (`glob` for any depth), `read_cloud_file` reads one file, the Code page in the portal zips them all |
+| Each change is a revision *(tool)* | Live at once as one revision and one deployment; `restore_revision` with the number before it undoes it. Nothing is pushed to GitHub unless the user pushes it from the Code page in the portal |
 | Hooks and migrations are kept | A route in `pb_hooks` answered before and after a `pb_public` deploy |
 | No restart | No new "Server started" in `get_logs` during either deploy; only hook changes restart the instance *(tool)* |
 | Content types follow the extension | `.html` text/html, `.css` text/css, a base64 `.png` image/png |

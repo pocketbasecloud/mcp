@@ -38,6 +38,4 @@ A read-only connection offers only the tools that read.
 - **Scripts and CI** can skip the browser by sending a PocketBase Cloud CLI access token as
   `Authorization: Bearer <token>`. The user creates it in the portal under Account → CLI access token. Put it in the
   `headers` of the entry above, never in a file that is committed.
-- **More tools:** add `?features=` to the URL to choose tool groups. The default is
-  `account,resources,deploy,domains,database,docs`; `env` and `database_admin` are opt-in.
 - **Troubleshooting:** see the Troubleshooting section of README.md.

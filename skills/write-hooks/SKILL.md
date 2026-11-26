@@ -12,8 +12,8 @@ hook, pb_hooks, pb.js, server-side code, on record create, before save, validati
 
 Server logic in PocketBase is JavaScript in `pb_hooks`. Each change goes live at once: it is a revision of the
 instance's files and a deployment, and a hook change restarts the instance. A PocketBase backup does not hold
-`pb_hooks`; the instance's revisions do (`restore_revision`). Nothing reaches GitHub unless the user asks
-(`push_to_github`). `references/hook-facts.md` holds what was measured on PocketBase 0.40.5 and the patterns that
+`pb_hooks`; the instance's revisions do (`restore_revision`). Nothing reaches GitHub unless the user pushes
+it from the Code page in the portal. `references/hook-facts.md` holds what was measured on PocketBase 0.40.5 and the patterns that
 follow from it.
 
 **Use this skill when** the user wants code to run on the server, or a hook file changed.
@@ -35,9 +35,9 @@ this conversation.
   file whose name suggests the same collection or route (`search_cloud_files` finds the files that name it). Never
   change a file you have not read; keep the `revision` the read returns, to pass as `baseRevision`.
 - `get_collection` for the collections the code reads or writes: exact field names and types.
-- `list_unpushed_changes` says whether the instance deploys from a GitHub repository; also ask whether the user keeps
-  `pb_hooks/` in a repository of their own. If so, the change must reach it too, or the next deploy from it undoes
-  yours: `push_to_github` only when the user asks for it, or they commit the file themselves.
+- Ask whether the instance deploys from a GitHub repository (the Code page in the portal shows it), or whether the
+  user keeps `pb_hooks/` in a repository of their own. If so, the change must reach it too, or the next deploy from
+  it undoes yours: the user pushes it from the Code page in the portal, or commits the file themselves.
 
 ### Step 2: Look up the API
 `search_docs` for each event, route or function the code uses (e.g. "onRecordCreateRequest", "routerAdd
@@ -52,7 +52,7 @@ Follow `references/hook-facts.md`:
 - Request hooks call `e.next()`. Without it the client gets 200 and the record is not saved.
 - Refuse with `throw new BadRequestError("message")`: the client sees the message. Any other error reaches the
   client as 400 "Something went wrong…".
-- Secrets come from `$os.getenv("NAME")`, never from the file. Set them with `set_env_vars` (opt-in `env`) or, better,
+- Secrets come from `$os.getenv("NAME")`, never from the file. Set them with `request_env_values` or, better,
   `pbc env import` on the user's machine.
 - Changing an existing file: change only what the task needs and keep everything else as it was. `edit_cloud_file`
   replaces `oldText` with `newText`; `oldText` must appear exactly once, so include the lines around it.
@@ -76,7 +76,7 @@ start with the change, it is undone and the error line comes back: fix it and as
   PocketBase cannot run is skipped at start, with "failed to execute <file>" and the error; the instance keeps
   running without that file's hooks. Fix it before anything else.
 - Try it: have the user make the request in the app, or, after approval, `create_record` with a test value and then
-  remove it. Read `get_request_logs` (`level >= 8` for failures) to see what happened.
+  remove it. Read the request log, `get_logs` with `requests: true` (`filter` `level >= 8` for failures), to see what happened.
 - A cron job: `list_crons` shows it; `run_cron` runs it once, after approval, since it runs real code.
 
 ### Last step: Next
@@ -94,7 +94,7 @@ that does not exist; `search_docs` for SDK code that calls a new route.
   overwritten hook file; `restore_revision` can (show `preview_restore_revision` first, and restore only after
   approval, with `confirm: true`).
 - Delete a hook file only after the user approved removing it: `write_cloud_files` with `delete` and `confirm: true`.
-- Nothing goes to GitHub unless the user asks for `push_to_github`.
+- Nothing goes to GitHub unless the user pushes it from the resource's Code page in the portal.
 - If `edit_cloud_file` and `write_cloud_files` are not offered, hand over the complete file and the command to deploy
   it from the user's machine (`pbc pocketbase hooks push <dir> --name <instance>`, which uploads the folder's files).
   To deploy it here, the user connects again with write access: "Read and write" on PocketBase Cloud's sign-in page,

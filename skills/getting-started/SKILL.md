@@ -22,30 +22,32 @@ PocketBase instance.
 
 ### Step 1: Check the plan
 
-Call `get_plan`.
+Call `get_overview`.
 
-- If `canDeploy` is false, tell the user in one or two lines what `nextStep` says, and wait until they say it is
-  sorted. Then call `get_plan` again before going on.
-- If a Free trial is running, say in one line how many days are left, then go on without waiting.
+- If `account.canDeploy` is false, tell the user in one or two lines what its plan step in `next` says, and wait
+  until they say it is sorted. Then call `get_overview` again before going on.
+- If a Free trial is running (`account.trial`), say in one line how many days are left, then go on without waiting.
 
 ### Step 2: Pick or create a project
 
-Call `list_projects`.
+Use the `projects` that `get_overview` returned.
 
 - If the user already has projects, ask which one to use, or whether to create a new one.
-- If there is none, propose a short project name from what they want to build, and call `create_project` with
-  `name` once they agree.
+- If there is none, or they want a new one, propose a short project name from what they want to build. It is
+  created together with the instance in step 4, with the same agreement.
 
 ### Step 3: Pick a region
 
-Call `list_regions` (with `project` when one was chosen). Propose the region nearest to the user or to their
-users, and say why in a few words. If the account has its own compute, mention it as an option.
+Call `get_overview` with `regions: true` (and `project` when one was chosen). Propose the region nearest to the user
+or to their users, and say why in a few words. If the account has its own compute, mention it as an option.
 
 ### Step 4: Create the instance
 
-Propose an instance name (lowercase, hyphens, e.g. `shop-db`). Once the user agrees, call `create_resource` with
-`kind: "pocketbase"`, `name`, `project`, and either `location` (a region code from step 3) or `compute` (an id of the
-account's own compute).
+Propose an instance name (lowercase, hyphens, e.g. `shop-db`). If what they want to build is close to a starter
+(`list_starters`: blog, store, booking and more), offer it: a working app they then change. Once the user agrees,
+call `create_resource` with `kind: "pocketbase"`, `name`, either `project` (an existing one) or `projectName` (a new
+one), either `location` (a region code from step 3) or `compute` (an id of the account's own compute), and `starter`
+when they chose one. The server asks the user to approve the new instance before it creates anything.
 
 The call returns at once with status `creating`. The superuser is the account's email; its password is generated
 and never shown. Tell the user to set their own with `pbc pocketbase superuser sync` or in the PocketBase Cloud
@@ -64,23 +66,24 @@ Give the user the instance's address from `domain` (`https://<domain>`) and its 
 - User accounts and owned data only: the **setup-user-accounts** skill.
 - Code for their app: `search_docs` for the PocketBase JS SDK, auth, realtime or files.
 - Server code or a small site served by the instance: the **write-hooks** and **ship-app** skills.
-- Deploying a frontend or backend: the PocketBase Cloud portal, or the `pbc` CLI on their machine.
+- Deploying a website or service: `deploy_resource`, once it is created in the portal; a finished build made on
+  their machine goes up with the `pbc` command from `get_deploy_command`.
 
 ---
 
 ## Rules
 
 - Never create a project or an instance without the user's agreement on its name.
-- If `create_project` or `create_resource` is not available, the connection is read-only: say so, and tell the user
+- If `create_resource` is not available, the connection is read-only: say so, and tell the user
   to connect again with write access: "Read and write" on PocketBase Cloud's sign-in page, or no `read_only=true` in
   the server URL.
-- Do not guess region codes or compute ids; use what `list_regions` returns.
-- No tool lists what a plan includes: give `plansUrl` from `get_plan` rather than saying it.
+- Do not guess region codes or compute ids; use what `get_overview` with `regions: true` returns.
+- No tool lists what a plan includes: give the plans page (https://pocketbasecloud.com/pricing) rather than saying it.
 
 ## Example
 
 > **User:** I want to build a recipe sharing app on PocketBase Cloud.
 >
-> **Assistant:** checks the plan (trial, 9 days left), finds no project, proposes `recipes`, creates it after a
-> yes, proposes Singapore as the nearest region and `recipes-db` as the instance, creates it after a yes, waits
-> until it runs, then gives the admin URL and suggests setting up user accounts next.
+> **Assistant:** checks the plan (trial, 9 days left), finds no project, proposes a `recipes` project, Singapore as
+> the nearest region and `recipes-db` as the instance, creates both after a yes, waits until it runs, then gives the
+> admin URL and suggests setting up user accounts next.

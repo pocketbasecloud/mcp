@@ -14,7 +14,7 @@ Several ways onto PocketBase Cloud, each with its own tool. The risk is in `pb_p
 `write_cloud_files` writes the files it is sent and removes only the ones it is told to delete, while
 `deploy_resource` replaces each of `pb_hooks` and `pb_public` it is sent, so files left out of it are removed. Every
 change goes live at once as a revision the user can restore (`restore_revision`); nothing reaches GitHub unless they
-ask (`push_to_github`). `references/pb-public-facts.md` holds what was measured.
+push it from the Code page in the portal. `references/pb-public-facts.md` holds what was measured.
 
 **Use this skill when** the user wants their site or app served from PocketBase Cloud.
 
@@ -72,7 +72,7 @@ are. To undo, `restore_revision` with the number before the one the write return
 first, and restore only after approval, with `confirm: true`).
 
 ### Last step: Next
-`write-hooks` for server code the site calls; `launch-checklist` before real users arrive; `add_domain` for a domain
+`write-hooks` for server code the site calls; `launch-checklist` before real users arrive; a custom domain on the resource's domains page in the portal for a domain
 of the user's own.
 
 ---
@@ -84,7 +84,7 @@ of the user's own.
 - Never send part of a site with `deploy_resource`: it replaces `pb_public`, so send all of it. With
   `write_cloud_files` the files not sent stay.
 - No secrets in public files: everything in `pb_public` can be downloaded by anyone.
-- Nothing goes to GitHub unless the user asks for `push_to_github`.
+- Nothing goes to GitHub unless the user pushes it from the resource's Code page in the portal.
 - If `write_cloud_files` is not offered, hand over the files to upload in the PocketBase Cloud portal, or
   `pbc pocketbase deploy --name <instance>` to run in the user's folder. To deploy from here, the user connects again
   with write access: "Read and write" on PocketBase Cloud's sign-in page, or no `read_only=true` in the server URL.

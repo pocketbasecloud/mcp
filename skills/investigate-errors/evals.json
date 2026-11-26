@@ -6,8 +6,8 @@
       "prompt": "In {instance}, users say the list of eval_orders in our app comes back empty for them, but there are orders in the dashboard.",
       "connection": { "read_only": false },
       "fixture": ["eval_members", "eval_orders", "member2_lists_orders"],
-      "must_call": ["diagnose_resource", "get_request_logs"],
-      "must_call_matching": [["get_request_logs", "_superusers"]],
+      "must_call": ["diagnose_resource", "get_logs"],
+      "must_call_matching": [["get_logs", "_superusers"], ["get_logs", "requests"]],
       "must_not_call": ["@write"],
       "answer_must": [
         "says the list requests ran signed in, and names the listRule owner = @request.auth.id as what leaves them empty",
@@ -19,8 +19,8 @@
       "prompt": "After my last hooks deploy, creating a comment in {instance}'s eval_comments fails with 'Something went wrong while processing your request.'",
       "connection": { "read_only": false },
       "fixture": ["eval_comments", "eval_comments_throws", "visitor_comments"],
-      "must_call": ["get_request_logs", "read_cloud_file"],
-      "must_call_matching": [["get_request_logs", "level >= 8"]],
+      "must_call": ["get_logs", "read_cloud_file"],
+      "must_call_matching": [["get_logs", "level >= 8"], ["get_logs", "requests"]],
       "must_not_call": ["@write"],
       "answer_must": [
         "quotes the error the hook threw",

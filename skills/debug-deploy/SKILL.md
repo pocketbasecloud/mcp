@@ -75,4 +75,4 @@ After the redeploy, `diagnose_resource` again; `investigate-errors` if the app t
 - For a PocketBase instance's files, `list_cloud_files` and `read_cloud_file` show what is deployed. Each change
   goes live at once as a revision (`restore_revision` undoes it) and waits for the user's approval: a hook change
   restarts the instance, deleting a file needs `confirm: true`, and so does `deploy_resource` when it replaces
-  `pb_hooks` or `pb_public`. Nothing goes to GitHub unless the user asks for `push_to_github`.
+  `pb_hooks` or `pb_public`. Nothing goes to GitHub unless the user pushes it from the resource's Code page in the portal.

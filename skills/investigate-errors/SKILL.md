@@ -29,14 +29,14 @@ tool in this conversation.
 
 ### Step 1: Health
 `diagnose_resource` (`kind: "pocketbase"`). A failed deploy or a stopped instance: hand off to `debug-deploy`. A
-pending custom domain: `check_domain`. A warning `instance_unreachable`: PocketBase Cloud cannot reach the instance,
+pending custom domain: its status is in `get_resource`, and the user fixes the DNS on the resource's domains page in the portal. A warning `instance_unreachable`: PocketBase Cloud cannot reach the instance,
 so every database tool fails on it though the app may be fine; retry in a few minutes, and if it lasts, have the
 user contact PocketBase Cloud support with the instance id; stop there. A warning `server_errors` names the route
 and the error a hook or route threw: go to step 3. A warning `log_errors`: `get_logs` (`kind: "pocketbase"`) and
 read the lines around them; a hook file that fails to load shows only there, not in the request log.
 
 ### Step 2: Find the failing requests
-`get_request_logs` with `filter` `level >= 8 && data.auth != '_superusers'`: every failed request of the app,
+`get_logs` with `requests: true` and `filter` `level >= 8 && data.auth != '_superusers'`: every failed request of the app,
 including those a hook threw (logged with status 0). The tools here call the instance as a superuser, so your own
 reads land in the same log; the `data.auth` condition leaves them out. It also hides the user's own superuser
 requests: when it comes back empty though `diagnose_resource` reported `server_errors`, or the user reproduced it in
@@ -51,14 +51,14 @@ For an empty list, read the successful list requests on that route
 Match each entry with `references/error-signatures.md`; `data.details` and `data.error` say most of it:
 - `details` with a field name: the value the field refused. `get_collection` for its options.
 - "create rule failure": the `createRule`. 403 "Only superusers…": a `null` rule. 404 on one record: the view,
-  update or delete rule hides it, or the id does not exist (`get_record` tells which).
+  update or delete rule hides it, or the id does not exist (`list_records` with `id` tells which).
 - Status 0 with an `error`: a hook or route threw. `search_cloud_files` finds the file that names the route or
   collection (or `list_cloud_files` on `pb_hooks` names them all) and `read_cloud_file` reads one; the error's
   location (`pb.js:2:54`) counts from the start of the handler, not the file. `search_docs` the API it calls.
   "Invalid module" means a `require()` names a file that is not on the instance.
 - An empty list with `auth` empty: the request ran as a visitor. The app sends no token, or one PocketBase did not
   accept, which it ignores rather than refuses. With `auth` "users": the `listRule` filters the records out;
-  `count_records` shows how many exist.
+  `list_records` with `count: true` shows how many exist.
 - A message you do not recognise: `search_docs` with its text before guessing.
 
 Say the cause in plain words, quoting at most three log entries, without tokens, emails or IPs.
@@ -75,7 +75,7 @@ Say the cause in plain words, quoting at most three log entries, without tokens,
 - The app's code (no token sent, a wrong field name in a filter): say what to change, with the SDK call.
 
 ### Step 5: Check
-Have the user retry, then `get_request_logs` with the same filter (once more if the retry is not there yet): the
+Have the user retry, then the request log again with the same filter (once more if the retry is not there yet): the
 failure is gone and the request answers as intended. `diagnose_resource` once more when a hook was the cause.
 
 ### Last step: Next

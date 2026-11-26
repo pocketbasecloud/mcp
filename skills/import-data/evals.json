@@ -15,7 +15,7 @@
       "approve": {
         "reply": "Yes, import the good rows.",
         "must_call": ["create_records"],
-        "must_call_before": [["create_records", "count_records"]],
+        "must_call_before": [["create_records", "list_records"]],
         "must_not_call": ["upsert_records", "truncate_collection", "delete_collection", "apply_collections"],
         "answer_must": ["says how many rows were imported"]
       }
@@ -35,7 +35,7 @@
         "reply": "Yes, go ahead.",
         "must_call": ["create_records"],
         "must_call_matching": [["create_records", "owner"]],
-        "must_call_before": [["create_records", "count_records"]],
+        "must_call_before": [["create_records", "list_records"]],
         "must_not_call": ["upsert_records", "truncate_collection", "delete_collection", "apply_collections"]
       }
     },
