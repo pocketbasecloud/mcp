@@ -5,7 +5,7 @@
       "id": "full-check",
       "prompt": "I'm launching the app on {instance} next week. Is it ready?",
       "connection": { "read_only": false },
-      "must_call": ["get_plan", "check_security", "check_performance", "list_backups", "get_resource", "diagnose_resource"],
+      "must_call": ["get_overview", "check_security", "check_performance", "list_backups", "get_resource", "diagnose_resource"],
       "must_not_call": ["@write"],
       "answer_must": [
         "prints a score computed as 100 minus 15 per failed check and 5 per warned check, one status per check",

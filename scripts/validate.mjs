@@ -19,21 +19,22 @@ const SKILL_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 /**
  * The server's tools by what they do, as pbc-mcp's annotation table lists them (`npm run annotations:table` there).
- * Evals may name only these; a write tool needs the user's approval, which one headless turn can't give.
+ * Retired tools are left out: the server hides them, so skills and evals may name only these; a write tool needs the user's approval, which one headless turn can't give.
  */
 export const READ_TOOLS = [
-  "list_projects", "get_project", "get_plan", "list_regions", "get_overview", "list_resources", "get_resource",
-  "diagnose_resource", "get_logs", "list_deployments", "get_deployment", "get_deploy_command", "list_hooks", "get_hook",
-  "check_domain", "list_env_vars", "list_collections", "get_collection", "list_records", "get_record",
-  "count_records", "get_request_logs", "list_backups", "list_crons", "check_security", "check_performance",
-  "generate_types", "preview_collections", "search_docs",
+  "get_resource", "get_logs", "list_deployments", "get_deployment", "get_deploy_command", "list_revisions",
+  "get_revision", "list_cloud_files", "preview_restore_revision", "list_previews", "diff_preview", "read_cloud_file",
+  "search_cloud_files", "list_env_vars", "get_collection", "list_records", "list_backups", "list_crons",
+  "check_security", "preview_collections", "check_performance", "read_pocketbase_api", "get_pocketbase_settings",
+  "search_docs", "get_overview", "diagnose_resource", "list_starters",
 ];
 export const WRITE_TOOLS = [
-  "create_project", "create_pocketbase", "update_pocketbase_config", "set_continuous_backup", "deploy_hooks",
-  "deploy_public", "add_domain", "verify_domain", "remove_domain", "set_env_vars", "delete_env_vars",
-  "apply_collections", "update_api_rules", "create_record", "create_records", "upsert_records", "update_record",
-  "delete_record", "create_backup", "run_cron", "truncate_collection", "delete_collection", "remove_fields",
-  "restore_backup", "delete_backup",
+  "create_resource", "update_pocketbase_config", "restart_resource", "rollback_deployment", "deploy_resource",
+  "create_upload_link", "restore_revision", "create_preview", "ship_preview", "discard_preview", "update_preview",
+  "resolve_conflict", "write_cloud_files", "edit_cloud_file", "request_env_values", "apply_collections",
+  "update_api_rules", "create_record", "create_records", "upsert_records", "update_record", "create_backup",
+  "run_cron", "delete_record", "truncate_collection", "delete_collection", "remove_fields", "restore_backup",
+  "delete_backup", "write_pocketbase_api", "create_test_user", "update_pocketbase_settings", "send_test_email",
 ];
 /** Skills that only read: no case of theirs has an approve turn (implementation.md, Definition of done). */
 const READ_ONLY_SKILLS = new Set(["launch-checklist"]);

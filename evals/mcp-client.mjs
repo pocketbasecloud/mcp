@@ -15,7 +15,7 @@ function resultData(result) {
 
 /** Tools a call may repeat after a network error: reads, and writes that end in the same state when sent twice. */
 const SAFE_TO_REPEAT = new Set([
-  "list_collections", "get_collection", "count_records", "list_records", "list_backups", "list_hooks", "get_hook",
+  "get_collection", "list_records", "list_backups", "list_hooks", "get_hook",
   "get_resource", "apply_collections", "delete_collection", "remove_fields", "delete_record", "delete_backup",
   "deploy_hooks",
 ]);

@@ -31,14 +31,14 @@ tool returns.
 
 | Check | Tool | Pass | Warn | Fail |
 |---|---|---|---|---|
-| Plan | `get_plan` | `canDeploy`, and no Free trial ending within 7 days | `trial.daysLeft` 7 or less | `canDeploy` false |
+| Plan | `account` from `get_overview` | `canDeploy`, and no Free trial ending within 7 days | `trial.daysLeft` 7 or less | `canDeploy` false |
 | Rules | `check_security` | No `critical` or `warning` | A `warning` the user has not confirmed as meant (public data) | A `critical` |
 | Speed | `check_performance` | No `warning` | A `warning`: a slow request on a field without an index | |
 | Backups | `list_backups`, and `continuousBackup` from `get_resource` | A backup from the last 7 days, or continuous backup on | Only older backups | No backup and continuous backup off |
 | Health | `diagnose_resource` for each resource of the app | `healthy`, or only a `domain_pending` (the Domain row has it) | A `warning` (failed requests, a hook that throws, an unreachable instance) | `critical` (down, failed deploy) |
 | Dev mode | `runtimeFlags.dev` from `get_resource` of the instance | `false` | `true`: the instance prints logs and SQL statements to its console | |
-| Domain | `customDomain` and `customDomainStatus` from `get_resource` of each resource, then `check_domain` | No custom domain, or verified and reachable | Set, status not `active` or `verified` yet | Verified but not reachable |
-| Variables | `list_env_vars` (opt-in `env`) | Every name the user says the app needs is set | | One of those names is missing |
+| Domain | `customDomain` and `customDomainStatus` from `get_resource` of each resource | No custom domain, or status `active` or `verified` | Set, status not `active` or `verified` yet | |
+| Variables | `list_env_vars` | Every name the user says the app needs is set | | One of those names is missing |
 
 A row covering several resources takes the worst status among them. `info` findings go in the report, without a
 status of their own. Variables stays not checked until the user names the variables the app needs.
@@ -52,10 +52,9 @@ Report now, without waiting for answers:
    read-only connection, say under the table how a fix gets applied after reconnecting (Rules).
 3. **Not checked:** each by name with the reason (a tool not on this connection, a question not answered). A skipped
    check is not a pass.
-4. **Questions no tool answers**, in one list at the end: is SMTP set in the admin UI (without it, verification and
+4. **Questions no tool answers**, in one list at the end: is mail set up, with managed email (the portal, or `pbc pocketbase email enable`) or SMTP in the admin UI (without it, verification and
    password-reset emails do not go out); did they set their own superuser password; are the OAuth2 providers they
-   use configured; is the app URL in the admin UI's settings the real one; with `list_env_vars` on the connection,
-   which variables the app needs.
+   use configured; is the app URL in the admin UI's settings the real one; which variables the app needs.
 
 ### Step 3: After answers or a fix
 Fold the answers into the table. When a fix has been applied, run again only the checks it touched, and show the new
@@ -64,10 +63,10 @@ score.
 ### Last step: Next
 The fixes are applied outside this checklist, each by its skill or tool after the user's approval: rules,
 `review-security`; an index, `change-schema`; failed requests or a hook, `investigate-errors`; a failed deploy or a
-resource down, `debug-deploy`; a backup, `create_backup` now and `set_continuous_backup` (paid plans), saying a
+resource down, `debug-deploy`; a backup, `create_backup` now and continuous backup on the instance's page in the portal (paid plans), saying a
 backup brings records back, not a deleted collection or field; dev mode, `update_pocketbase_config` with
-`dev: false` (the instance restarts); a domain, `verify_domain` once the DNS records `add_domain` returned are in
-place; a variable, `set_env_vars` (opt-in `env`).
+`dev: false` (the instance restarts); a domain, the resource's domains page in the portal, which shows the DNS records
+and verifies them; a variable, `request_env_values`, whose portal page is where the user types the value.
 
 ---
 
@@ -75,7 +74,7 @@ place; a variable, `set_env_vars` (opt-in `env`).
 
 - Call no write tool in this skill, even when a fix is one call away: report, then hand over.
 - Every pass, warn and fail cites its tool call; nothing is assumed from memory or from an earlier conversation.
-  No tool lists what a plan includes: give `plansUrl` from `get_plan` rather than saying it.
+  No tool lists what a plan includes: give the plans page (https://pocketbasecloud.com/pricing) rather than saying it.
 - If the connection is read-only, the report is the same: every check reads. Say how a fix gets applied: the user
   connects again with write access ("Read and write" on PocketBase Cloud's sign-in page, or no `read_only=true` in
   the server URL), then asks for a row's fix, which the skill in its Who column applies after their approval.

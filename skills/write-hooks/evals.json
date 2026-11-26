@@ -6,18 +6,18 @@
       "prompt": "In {instance}, refuse new comments in eval_comments that contain a link, with a clear message.",
       "connection": { "read_only": false },
       "fixture": ["eval_comments"],
-      "must_call": ["list_hooks", "search_docs"],
+      "must_call": ["list_cloud_files", "search_docs"],
       "must_not_call": ["@write"],
       "answer_must": [
         "shows the complete hook file before deploying it",
-        "says the deploy restarts the instance, and asks for approval"
+        "says the deploy goes live at once and restarts the instance, and asks for approval"
       ],
       "approve": {
         "reply": "Yes, deploy it.",
-        "must_call": ["deploy_hooks"],
-        "must_call_matching": [["deploy_hooks", "e.next()"], ["deploy_hooks", "BadRequestError"]],
-        "must_call_before": [["deploy_hooks", "get_logs"]],
-        "must_not_call": ["deploy_public", "delete_collection", "apply_collections"],
+        "must_call": ["write_cloud_files"],
+        "must_call_matching": [["write_cloud_files", "pb_hooks/"], ["write_cloud_files", "e.next()"], ["write_cloud_files", "BadRequestError"]],
+        "must_call_before": [["write_cloud_files", "get_logs"]],
+        "must_not_call": ["deploy_resource", "delete_collection", "apply_collections"],
         "answer_must": ["says how the user can try it"]
       }
     },
@@ -26,7 +26,7 @@
       "prompt": "In {instance}, my hook for eval_comments makes every new comment fail. Fix it.",
       "connection": { "read_only": false },
       "fixture": ["eval_comments", "eval_comments_throws", "visitor_comments"],
-      "must_call": ["get_hook"],
+      "must_call": ["read_cloud_file"],
       "must_not_call": ["@write"],
       "answer_must": [
         "names the toLowercase typo as the cause",
@@ -35,10 +35,10 @@
       ],
       "approve": {
         "reply": "Yes, deploy the fix.",
-        "must_call": ["deploy_hooks"],
-        "must_call_matching": [["deploy_hooks", "toLowerCase()"], ["deploy_hooks", "buy now"]],
-        "must_call_before": [["deploy_hooks", "get_logs"]],
-        "must_not_call": ["deploy_public", "delete_collection", "apply_collections"]
+        "must_call": ["edit_cloud_file"],
+        "must_call_matching": [["edit_cloud_file", "toLowerCase()"]],
+        "must_call_before": [["edit_cloud_file", "get_logs"]],
+        "must_not_call": ["deploy_resource", "delete_collection", "apply_collections"]
       }
     },
     {

@@ -27,7 +27,7 @@ and plan to hand over the mapped records instead. If the user said "read only", 
 
 ### Step 1: Read the collection
 `get_collection`: the fields, their types and options, which are required, the unique indexes, and the relations
-(they take record ids). `count_records` for how many records it holds now.
+(they take record ids). `list_records` with `count: true` for how many records it holds now.
 
 ### Step 2: Map and check every row
 - Each column to a field by name; a column with no field is left out, and said so. A missing required field is a
@@ -49,7 +49,7 @@ an entry in the app: say so for a large import. More than a few thousand rows: p
 instead, and say it has not been run.
 
 ### Step 5: Check
-`count_records` again: the count grew by the rows created. Report how many were imported, and each row that
+`list_records` with `count: true` again: the count grew by the rows created. Report how many were imported, and each row that
 failed, by its line number, with the reason.
 
 ### Last step: Next

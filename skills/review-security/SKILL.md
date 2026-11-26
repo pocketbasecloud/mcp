@@ -22,7 +22,7 @@ open and fixes them with the user.
 
 ### Step 1: Find the instance
 
-If the user did not name one, call `list_resources` with `kind: "pocketbase"` and ask which instance to review.
+If the user did not name one, call `get_resource` with `kind: "pocketbase"` and no `resource` and ask which instance to review.
 
 ### Step 2: Run the review
 

@@ -57,9 +57,9 @@ test("a requirement the judge left out fails", () => {
 });
 
 test("must_call_matching needs a call of that tool whose arguments hold the text", () => {
-  const calls = [call("get_request_logs", { filter: "data.status >= 500" }), call("get_request_logs", { filter: "level >= 8 && data.auth != '_superusers'" })];
-  assert.deepEqual(failed(scoreTurn(calls, { must_call_matching: [["get_request_logs", "level >= 8"]] }, target)), []);
-  assert.deepEqual(failed(scoreTurn(calls.slice(0, 1), { must_call_matching: [["get_request_logs", "level >= 8"]] }, target)), [
-    "must_call_matching:get_request_logs~level >= 8",
+  const calls = [call("get_logs", { filter: "data.status >= 500" }), call("get_logs", { filter: "level >= 8 && data.auth != '_superusers'" })];
+  assert.deepEqual(failed(scoreTurn(calls, { must_call_matching: [["get_logs", "level >= 8"]] }, target)), []);
+  assert.deepEqual(failed(scoreTurn(calls.slice(0, 1), { must_call_matching: [["get_logs", "level >= 8"]] }, target)), [
+    "must_call_matching:get_logs~level >= 8",
   ]);
 });

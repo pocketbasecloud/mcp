@@ -21,8 +21,8 @@ const toolError = (code) => ({ isError: true, structuredContent: { error: { code
 test("a safe tool is asked again after a network error, and its answer returned", async () => {
   const calls = fakeServer([new TypeError("fetch failed"), toolError("NETWORK_ERROR"), ok({ collections: [] })]);
   const c = await connect("https://x.test/mcp", "t", { retryDelayMs: 1 });
-  assert.deepEqual(await c.call("list_collections", {}), { collections: [] });
-  assert.deepEqual(calls, ["list_collections", "list_collections", "list_collections"]);
+  assert.deepEqual(await c.call("get_collection", {}), { collections: [] });
+  assert.deepEqual(calls, ["get_collection", "get_collection", "get_collection"]);
 });
 
 test("create_records is never asked again, so a fixture is not written twice", async () => {

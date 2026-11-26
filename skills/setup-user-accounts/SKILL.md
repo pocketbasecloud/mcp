@@ -11,7 +11,7 @@ user accounts, sign up, login, authentication, auth collection, users collection
 ## Overview
 
 Designs the users auth collection and the collections each user owns, with API rules that keep every user to their
-own records, then applies it safely: preview, backup, apply, security check, TypeScript types.
+own records, then applies it safely: preview, backup, apply, security check.
 
 **Use this skill when** the user wants sign-up and login, or per-user data, in a PocketBase instance.
 
@@ -21,7 +21,7 @@ own records, then applies it safely: preview, backup, apply, security check, Typ
 
 ### Step 1: Read what exists
 
-Call `list_collections` with `resource`, then `get_collection` for the collections that matter (always `users` if it
+Call `get_collection` with `resource` and no `collection` to list them, then `get_collection` for the collections that matter (always `users` if it
 exists). Keep what is there: collections and fields not in the plan are left alone. Check that `apply_collections` is
 among your tools (a client may list it only by name, as a deferred tool): without it the connection is read-only. Say
 so at once, and plan to hand over what the Rules list instead of asking to apply.
@@ -68,11 +68,6 @@ Once the user agrees:
 ### Step 5: Check the rules
 
 Run `check_security` and fix any `critical` or `warning` finding with the **review-security** skill.
-
-### Step 6: Types for the app
-
-Call `generate_types` with `resource` (and `collections` to limit it). Tell the user to save the result as a `.ts`
-file in their app, for the PocketBase JS SDK.
 
 ### Last step: Next
 

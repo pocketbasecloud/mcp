@@ -16,7 +16,7 @@
       ],
       "approve": {
         "reply": "Yes, go ahead.",
-        "must_call_before": [["create_backup", "apply_collections"], ["apply_collections", "count_records"]],
+        "must_call_before": [["create_backup", "apply_collections"], ["apply_collections", "list_records"]],
         "must_not_call": ["remove_fields", "delete_collection", "truncate_collection"],
         "answer_must": ["names the backup", "says the records kept their values after the rename"]
       }
@@ -26,7 +26,8 @@
       "prompt": "In {instance}, make eval_products.price a number; it is text now.",
       "connection": { "read_only": false },
       "fixture": ["eval_products"],
-      "must_call": ["get_collection", "count_records", "preview_collections"],
+      "must_call": ["get_collection", "list_records", "preview_collections"],
+      "must_call_matching": [["list_records", "count"]],
       "must_not_call": ["@write"],
       "answer_must": [
         "never sends price with the number type in place of the text one",

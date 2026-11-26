@@ -46,7 +46,7 @@ collection with the field renamed **and** the rule and index rewritten, in one r
 
 List the field in full, as `get_collection` returned it (`required`, `max`…): a listed field replaces the stored
 one, and options left out go back to their defaults. Other fields can be left out; they are kept. Then: the hooks
-and the app code that read `title`, and `generate_types`.
+and the app code that read `title`.
 
 ## Make `price` a number in `products` (it is text)
 
@@ -65,7 +65,7 @@ and the app code that read `title`, and `generate_types`.
    { "collection": "products", "records": [{ "id": "0a5cpq7pf3hhit5", "price_new": 550 }, { "id": "0fwhnbvgqugdbm7", "price_new": 1250 }] }
    ```
 
-3. **Prove**: `count_records` with groups
+3. **Prove**: `list_records` with `count: true` and `groups`
    `{"copied": "price_new > 0", "missing": "price_new = 0 && price != '' && price != '0'"}`. A number field holds 0
    when empty, so a price written as `"0"` is left out of `missing`; another way of writing zero (`"0.00"`) stays in
    it. Go on only when every record left in `missing` is one the user decided on.
@@ -79,7 +79,7 @@ quiet window.
 ## Add a unique index on `slug`
 
 1. Duplicates: `list_records` sorted by `slug` with `fields` `id,slug`, page by page; or, for a suspect value,
-   `count_records` with `filter` `slug = 'post-3'`. Settle each duplicate with the user.
+   `list_records` with `count: true` and `filter` `slug = 'post-3'`. Settle each duplicate with the user.
 2. The index alone, with the existing ones:
 
    ```json

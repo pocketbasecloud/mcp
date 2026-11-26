@@ -5,7 +5,7 @@
       "id": "recipes-app",
       "prompt": "In {instance}, I'm building a recipe app: recipes anyone can read and only their author edits, their ingredients, and ratings and favorites each user keeps to themselves.",
       "connection": { "read_only": false },
-      "must_call": ["list_collections", "get_collection", "preview_collections"],
+      "must_call": ["get_collection", "preview_collections"],
       "must_call_matching": [["preview_collections", "_pb_users_auth_"]],
       "must_not_call": ["@write"],
       "answer_must": [
@@ -26,7 +26,7 @@
       "prompt": "Add a blog to {instance}.",
       "connection": { "read_only": false },
       "fixture": ["eval_products"],
-      "must_call": ["list_collections"],
+      "must_call": ["get_collection"],
       "must_not_call": ["@write"],
       "answer_must": [
         "keeps the existing collections' fields and records, naming any addition to them (such as a role on users)",
